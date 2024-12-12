@@ -21,6 +21,7 @@ type Config struct {
 	SchoolUsername   string
 	SchoolPassword   string
 	SchoolTokenURL   string
+	SchoolBaseApiURL string
 }
 
 func LoadConfig() (*Config, error) {
@@ -52,6 +53,7 @@ func LoadConfig() (*Config, error) {
 	cfg.SchoolUsername = getEnv("SCHOOL_USERNAME", "")
 	cfg.SchoolPassword = getEnv("SCHOOL_PASSWORD", "")
 	cfg.SchoolTokenURL = getEnv("SCHOOL_TOKEN_URL", "")
+	cfg.SchoolBaseApiURL = getEnv("SCHOOL_BASE_API_URL", "")
 
 	return cfg, nil
 }

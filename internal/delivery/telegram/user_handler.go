@@ -34,12 +34,13 @@ func NewUserHandler(chatUseCase *usecase.ChatUseCase, userUseCase *usecase.UserU
 	}
 }
 
-func (h *UserHandler) HandleNewMembers(ctx context.Context, b *bot.Bot, msg *models.Message) {
-	chat, err := h.ChatUseCase.GetByChatID(ctx, msg.Chat.ID)
-	if err != nil {
-		return
-	}
+func (h *UserHandler) HandleNewMembers(ctx context.Context, b *bot.Bot, msg *models.Message, threadID int) {
 	readableChatID := strconv.FormatInt(msg.Chat.ID, 10)[4:]
+
+	b.DeleteMessage(ctx, &bot.DeleteMessageParams{
+		ChatID:    msg.Chat.ID,
+		MessageID: msg.ID,
+	})
 	for _, user := range msg.NewChatMembers {
 		exists, err := h.UserUseCase.Exists(ctx, user.ID)
 		if err != nil {
@@ -75,7 +76,7 @@ func (h *UserHandler) HandleNewMembers(ctx context.Context, b *bot.Bot, msg *mod
 			MessageThreadID: msg.MessageThreadID,
 			Text: fmt.Sprintf(
 				"О\\-о\\-ох\\, эй\\, [%s](tg://user?id=%d)\\, ты новенький\\, да\\? Ладно, послушай\\! Тебе нужно сбросить [сюда](https://t.me/c/%s/%d) свой школьный ник\\, м\\-может быть\\, окей\\? Зачем\\? А\\-а\\-а\\-а я не знаю\\, просто правила такие\\! Ну\\, пожалуйста\\, сделай это\\, пока Рик не начал ворчать\\!",
-				user.FirstName, user.ID, readableChatID, chat.ThreadID,
+				user.FirstName, user.ID, readableChatID, threadID,
 			),
 			ParseMode: models.ParseModeMarkdown,
 		})

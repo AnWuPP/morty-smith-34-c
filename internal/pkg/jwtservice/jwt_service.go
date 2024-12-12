@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"morty-smith-34-c/pkg/logger"
 	"net/http"
 	"sync"
 	"time"
@@ -27,7 +28,7 @@ type jwtService struct {
 	apiBaseURL   string
 	httpClient   *http.Client
 	tokenCache   *TokenCache
-	logger       Logger
+	logger       *logger.Logger
 }
 
 // TokenCache - структура для хранения токенов в памяти.
@@ -60,14 +61,8 @@ type UserResponse struct {
 	Status string `json:"status"`
 }
 
-// Logger - интерфейс для логирования.
-type Logger interface {
-	Info(msg string)
-	Error(msg string)
-}
-
 // NewJWTService создает новый экземпляр jwtService.
-func NewJWTService(username, password, authEndpoint, apiBaseURL string, httpClient *http.Client, logger Logger) JWTService {
+func NewJWTService(username, password, authEndpoint, apiBaseURL string, httpClient *http.Client, logger *logger.Logger) JWTService {
 	if httpClient == nil {
 		httpClient = &http.Client{}
 	}
