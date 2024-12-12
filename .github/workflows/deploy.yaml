@@ -1,0 +1,64 @@
+name: Deploy Morty Bot
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Клонируем репозиторий
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # 2. Собираем Go-приложение из директории cmd/bot
+    - name: Build Bot
+      run: |
+        cd cmd/bot
+        go build -o bot
+
+    # 3. Настраиваем SSH-доступ
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+    # 4. Создаём директорию на сервере
+    - name: Prepare Server Directory
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.SERVER_IP }} "
+          mkdir -p /opt/morty-bot/morty-smith-34-c
+        "
+
+    # 5. Заливаем файлы проекта на сервер
+    - name: Deploy Files
+      run: |
+        rsync -avz --delete ./cmd/bot/bot ${{ secrets.DEPLOY_USER }}@${{ secrets.SERVER_IP }}:/opt/morty-bot/morty-smith-34-c/
+        rsync -avz --delete ./migrations/ ${{ secrets.DEPLOY_USER }}@${{ secrets.SERVER_IP }}:/opt/morty-bot/morty-smith-34-c/migrations/
+        rsync -avz --delete ./Makefile ${{ secrets.DEPLOY_USER }}@${{ secrets.SERVER_IP }}:/opt/morty-bot/morty-smith-34-c/
+
+    # 6. Копируем .env на сервер
+    - name: Copy .env
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.SERVER_IP }} "
+          cp /opt/morty-bot/.env /opt/morty-bot/morty-smith-34-c/.env
+        "
+
+    # 7. Выполняем миграции
+    - name: Run Migrations
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.SERVER_IP }} "
+          cd /opt/morty-bot/morty-smith-34-c
+          make migrate-up
+        "
+
+    # 8. Перезапускаем сервис
+    - name: Restart Bot
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.SERVER_IP }} "
+          sudo systemctl restart morty-bot.service
+        "
