@@ -130,27 +130,18 @@ func main() {
 		commandHandler.HandleCommand(ctx, b, update.Message)
 	})
 
-	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/faq", bot.MatchTypeExact, func(ctx context.Context, b *bot.Bot, update *models.Update) {
-		commandHandler.FaqHandle(ctx, b, update.Message)
-	})
-
-	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/rules", bot.MatchTypeExact, func(ctx context.Context, b *bot.Bot, update *models.Update) {
-		commandHandler.RulesHandle(ctx, b, update.Message)
-	})
-
-	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/save", bot.MatchTypeExact, func(ctx context.Context, b *bot.Bot, update *models.Update) {
-		commandHandler.SaveHandle(ctx, b, update.Message)
-	})
-
-	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/role", bot.MatchTypePrefix, func(ctx context.Context, b *bot.Bot, update *models.Update) {
-		commandHandler.RoleHandle(ctx, b, update.Message)
-	})
-
-	if cfg.Debug {
-		tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/test", bot.MatchTypePrefix, func(ctx context.Context, b *bot.Bot, update *models.Update) {
-			log.Debug(ctx, "Test cmd")
-		})
-	}
+	// tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/test", bot.MatchTypeExact, func(ctx context.Context, b *bot.Bot, update *models.Update) {
+	// 	b.SetMessageReaction(ctx, &bot.SetMessageReactionParams{
+	// 		ChatID:    update.Message.Chat.ID, // ID чата
+	// 		MessageID: update.Message.ID,      // ID сообщения
+	// 		Reaction: []models.ReactionType{
+	// 			{
+	// 				Type:              models.ReactionTypeTypeEmoji,
+	// 				ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "👍"},
+	// 			},
+	// 		},
+	// 	})
+	// })
 
 	// Запускаем бота
 	defer func() {
