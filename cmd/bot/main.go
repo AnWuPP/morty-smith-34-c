@@ -79,6 +79,13 @@ func main() {
 			if !ok {
 				return
 			}
+			if update.Message != nil && update.Message.LeftChatMember != nil {
+				b.DeleteMessage(ctx, &bot.DeleteMessageParams{
+					ChatID:    update.Message.Chat.ID,
+					MessageID: update.Message.ID,
+				})
+				return
+			}
 			if update.Message != nil && update.Message.NewChatMembers != nil {
 				userHandler.HandleNewMembers(ctx, b, update.Message, threadID)
 				return
@@ -102,6 +109,19 @@ func main() {
 	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/morty_id_topic_here", bot.MatchTypePrefix, func(ctx context.Context, b *bot.Bot, update *models.Update) {
 		commandHandler.HandleCommand(ctx, b, update.Message)
 	})
+
+	// tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/test", bot.MatchTypeExact, func(ctx context.Context, b *bot.Bot, update *models.Update) {
+	// 	b.SetMessageReaction(ctx, &bot.SetMessageReactionParams{
+	// 		ChatID:    update.Message.Chat.ID, // ID чата
+	// 		MessageID: update.Message.ID,      // ID сообщения
+	// 		Reaction: []models.ReactionType{
+	// 			{
+	// 				Type:              models.ReactionTypeTypeEmoji,
+	// 				ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "👍"},
+	// 			},
+	// 		},
+	// 	})
+	// })
 
 	// Запускаем бота
 	log.Info("Bot is running...")

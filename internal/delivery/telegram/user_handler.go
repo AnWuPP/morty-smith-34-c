@@ -140,11 +140,49 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 				MessageThreadID: msg.MessageThreadID,
 				ParseMode:       models.ParseModeMarkdown,
 			})
+			b.SetMessageReaction(ctx, &bot.SetMessageReactionParams{
+				ChatID:    msg.Chat.ID, // ID чата
+				MessageID: msg.ID,      // ID сообщения
+				Reaction: []models.ReactionType{
+					{
+						Type:              models.ReactionTypeTypeEmoji,
+						ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "👎"},
+					},
+				},
+			})
 			time.AfterFunc(time.Minute*2, func() {
+				b.DeleteMessage(ctx, &bot.DeleteMessageParams{
+					ChatID:    msg.Chat.ID,
+					MessageID: msg.ID,
+				})
 				b.DeleteMessage(ctx, &bot.DeleteMessageParams{
 					ChatID:    msg.Chat.ID,
 					MessageID: sendMessage.ID,
 				})
+			})
+			return
+		}
+		if err.Error() == "not core program" || err.Error() == "profile not active" {
+			h.RemoveUserFromTimers(ctx, b, msg.Chat.ID, msg.From.ID)
+
+			_, err := b.BanChatMember(ctx, &bot.BanChatMemberParams{
+				ChatID:    msg.Chat.ID,
+				UserID:    msg.From.ID,
+				UntilDate: 0,
+			})
+			if err != nil {
+				log.Printf("Failed to ban user: %v", err)
+			}
+
+			b.SetMessageReaction(ctx, &bot.SetMessageReactionParams{
+				ChatID:    msg.Chat.ID, // ID чата
+				MessageID: msg.ID,      // ID сообщения
+				Reaction: []models.ReactionType{
+					{
+						Type:              models.ReactionTypeTypeEmoji,
+						ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "😈"},
+					},
+				},
 			})
 			return
 		}
@@ -164,6 +202,16 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 		return
 	}
 
+	b.SetMessageReaction(ctx, &bot.SetMessageReactionParams{
+		ChatID:    msg.Chat.ID, // ID чата
+		MessageID: msg.ID,      // ID сообщения
+		Reaction: []models.ReactionType{
+			{
+				Type:              models.ReactionTypeTypeEmoji,
+				ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "👍"},
+			},
+		},
+	})
 	// Подтверждение для пользователя
 	sendMessage, _ := b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: msg.Chat.ID,
