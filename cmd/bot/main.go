@@ -96,7 +96,6 @@ func main() {
 			if update.Message != nil && threadID != -1 && update.Message.MessageThreadID == threadID {
 				userHandler.HandleNickname(ctx, b, update.Message)
 				return
-				return
 			}
 		}),
 	}
@@ -141,7 +140,7 @@ func main() {
 
 	if cfg.Debug {
 		tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/test", bot.MatchTypePrefix, func(ctx context.Context, b *bot.Bot, update *models.Update) {
-			log.Debug("Test cmd")
+			log.Debug(ctx, "Test cmd")
 		})
 	}
 
