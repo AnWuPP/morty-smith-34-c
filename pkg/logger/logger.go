@@ -19,14 +19,19 @@ type Logger struct {
 }
 
 // NewLogger создаёт новый логгер с уровнем из конфигурации
-func NewLogger(cfg *config.Config) *Logger {
+func NewLogger(filePath string, cfg *config.Config) *Logger {
 	debug := cfg.Debug
+
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return nil
+	}
 
 	var handler slog.Handler
 	if debug {
-		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
+		handler = slog.NewTextHandler(file, &slog.HandlerOptions{Level: slog.LevelDebug})
 	} else {
-		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
+		handler = slog.NewTextHandler(file, &slog.HandlerOptions{Level: slog.LevelInfo})
 	}
 
 	return &Logger{

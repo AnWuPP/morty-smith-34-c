@@ -30,7 +30,7 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	log := logger.NewLogger(cfg)
+	log := logger.NewLogger("bot.log", cfg)
 
 	// Подключаемся к базе данных
 	db, err := postgres.NewDatabase(
