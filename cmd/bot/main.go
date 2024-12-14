@@ -106,7 +106,7 @@ func main() {
 	}
 
 	// Регистрируем команды
-	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/morty_come_here", bot.MatchTypeExact, func(ctx context.Context, b *bot.Bot, update *models.Update) {
+	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/morty_come_here", bot.MatchTypePrefix, func(ctx context.Context, b *bot.Bot, update *models.Update) {
 		commandHandler.HandleCommand(ctx, b, update.Message)
 	})
 
@@ -136,6 +136,14 @@ func main() {
 
 	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/rules", bot.MatchTypeExact, func(ctx context.Context, b *bot.Bot, update *models.Update) {
 		commandHandler.RulesHandle(ctx, b, update.Message)
+	})
+
+	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/save", bot.MatchTypeExact, func(ctx context.Context, b *bot.Bot, update *models.Update) {
+		commandHandler.SaveHandle(ctx, b, update.Message)
+	})
+
+	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/role", bot.MatchTypePrefix, func(ctx context.Context, b *bot.Bot, update *models.Update) {
+		commandHandler.RoleHandle(ctx, b, update.Message)
 	})
 
 	if cfg.Debug {
