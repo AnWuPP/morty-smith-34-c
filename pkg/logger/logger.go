@@ -21,7 +21,6 @@ type Logger struct {
 // NewLogger создаёт новый логгер с уровнем из конфигурации
 func NewLogger(filePath string, cfg *config.Config) *Logger {
 	debug := cfg.Debug
-
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil
