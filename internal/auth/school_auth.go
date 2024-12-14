@@ -16,12 +16,6 @@ type SchoolAuth struct {
 	AuthToken string
 }
 
-// type authRequest struct {
-// 	GrantType string `json:"grant_type"`
-// 	Username  string `json:"username"`
-// 	Password  string `json:"password"`
-// }
-
 type authResponse struct {
 	AccessToken string `json:"access_token"`
 }
