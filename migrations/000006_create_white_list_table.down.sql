@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS white_list;

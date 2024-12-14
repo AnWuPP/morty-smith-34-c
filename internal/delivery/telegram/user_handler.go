@@ -125,7 +125,7 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 	}
 
 	// Проверяем ник через JWTService
-	userInfo, err := h.jwtService.CheckUser(msg.Text)
+	userInfo, err := h.jwtService.CheckUser(ctx, msg.Text)
 	if err != nil {
 		if err.Error() == "user not found" {
 			sendMessage, _ := b.SendMessage(ctx, &bot.SendMessageParams{

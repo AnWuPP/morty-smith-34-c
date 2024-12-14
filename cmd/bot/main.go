@@ -9,6 +9,7 @@ import (
 	"morty-smith-34-c/internal/app/repository"
 	"morty-smith-34-c/internal/app/usecase"
 	"morty-smith-34-c/internal/delivery/telegram"
+	"morty-smith-34-c/internal/delivery/telegram/commands"
 	"morty-smith-34-c/internal/pkg/jwtservice"
 	"morty-smith-34-c/internal/storage/cache"
 	"morty-smith-34-c/internal/storage/postgres"
@@ -20,6 +21,9 @@ import (
 )
 
 func main() {
+	// Настраиваем Telegram Bot API
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
 	// Загружаем конфигурацию
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -30,10 +34,10 @@ func main() {
 
 	// Подключаемся к базе данных
 	db, err := postgres.NewDatabase(
-		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName, cfg.DBSSLMode,
+		ctx, cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName, cfg.DBSSLMode, log,
 	)
 	if err != nil {
-		log.Error("Failed to connect to database: %v", err)
+		log.Error(ctx, "Failed to connect to database: %v", err)
 	}
 
 	// Инициализируем репозитории и usecases
@@ -53,24 +57,20 @@ func main() {
 	)
 
 	// Выполняем первичную аутентификацию
-	if err := jwtService.Authenticate(); err != nil {
-		log.Error("Failed to authenticate with School API: %v", err)
+	if err := jwtService.Authenticate(ctx); err != nil {
+		log.Error(ctx, "Failed to authenticate with School API: %v", err)
 	}
-
-	// Настраиваем Telegram Bot API
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer cancel()
 
 	// Создаем кеш для идов ThreadID
 	chatCache := cache.NewChatCache()
 
 	// Загружаем данные из базы в кеш
 	if err := chatCache.LoadFromDatabase(ctx, chatUseCase); err != nil {
-		log.Error("Failed to load chats from database: %v", err)
+		log.Error(ctx, "Failed to load chats from database: %v", err)
 	}
 
 	// Создаём обработчики
-	commandHandler := telegram.NewCommandHandler(chatUseCase, userUseCase, chatCache)
+	commandHandler := commands.NewCommandHandler(chatUseCase, userUseCase, chatCache)
 	userHandler := telegram.NewUserHandler(chatUseCase, userUseCase, jwtService)
 
 	botOptions := []bot.Option{
@@ -99,7 +99,7 @@ func main() {
 
 	tgBot, err := bot.New(cfg.BotToken, botOptions...)
 	if err != nil {
-		log.Error("Failed to initialize Telegram bot: %v", err)
+		log.Error(ctx, "Failed to initialize Telegram bot: %v", err)
 	}
 
 	// Регистрируем команды
@@ -142,6 +142,10 @@ func main() {
 	}
 
 	// Запускаем бота
-	log.Info("Bot is running...")
+	defer func() {
+		tgBot.Close(ctx)
+		log.Info(ctx, "Bot has stopped gracefully")
+	}()
+	log.Info(ctx, "Bot is running...")
 	tgBot.Start(ctx)
 }
