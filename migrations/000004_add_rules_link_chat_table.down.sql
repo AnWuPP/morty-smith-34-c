@@ -1,0 +1,1 @@
+ALTER TABLE chats DROP COLUMN rules_link;

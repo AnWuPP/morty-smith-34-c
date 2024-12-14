@@ -1,0 +1,1 @@
+ALTER TABLE chats DROP COLUMN faq_link;

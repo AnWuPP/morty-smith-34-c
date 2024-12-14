@@ -26,6 +26,16 @@ func (u *ChatUseCase) UpdateThreadID(ctx context.Context, chatID int64, threadID
 	return u.ChatRepo.UpdateThreadID(ctx, chatID, threadID)
 }
 
+// UpdateRulesLink обновляет ссылку на правила для чата
+func (u *ChatUseCase) UpdateRulesLink(ctx context.Context, chatID int64, rulesLink string) error {
+	return u.ChatRepo.UpdateRulesLink(ctx, chatID, rulesLink)
+}
+
+// UpdateRulesLink обновляет ссылку на помощь для чата
+func (u *ChatUseCase) UpdateFaqLink(ctx context.Context, chatID int64, faqLink string) error {
+	return u.ChatRepo.UpdateFaqLink(ctx, chatID, faqLink)
+}
+
 // GetByChatID возвращает информацию о чате
 func (u *ChatUseCase) GetByChatID(ctx context.Context, chatID int64) (*entity.Chat, error) {
 	return u.ChatRepo.GetByChatID(ctx, chatID)
