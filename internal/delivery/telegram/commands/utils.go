@@ -10,7 +10,7 @@ import (
 
 // parseDuration parses human-readable time format into time.Duration
 func parseDuration(input string) (time.Duration, error) {
-	re := regexp.MustCompile(`(?i)(\d+\s*день|\d+\s*дня|\d+\s*дней|\d+\s*час|\d+\s*минут|\d+\s*секунд)`)
+	re := regexp.MustCompile(`(?i)(\d+\s*нед|\d+\s*день|\d+\s*дня|\d+\s*дней|\d+\s*час|\d+\s*мин|\d+\s*сек)`)
 	matches := re.FindAllString(strings.ToLower(input), -1)
 
 	if len(matches) == 0 {
@@ -28,12 +28,15 @@ func parseDuration(input string) (time.Duration, error) {
 		} else if strings.Contains(match, "час") {
 			value, err = extractNumber(match, "час")
 			duration += time.Duration(value) * time.Hour
-		} else if strings.Contains(match, "минут") {
-			value, err = extractNumber(match, "минут")
+		} else if strings.Contains(match, "мин") {
+			value, err = extractNumber(match, "мин")
 			duration += time.Duration(value) * time.Minute
-		} else if strings.Contains(match, "секунд") {
-			value, err = extractNumber(match, "секунд")
+		} else if strings.Contains(match, "сек") {
+			value, err = extractNumber(match, "сек")
 			duration += time.Duration(value) * time.Second
+		} else if strings.Contains(match, "нед") {
+			value, err = extractNumber(match, "нед")
+			duration += time.Duration(value) * 24 * 7 * time.Hour
 		}
 
 		if err != nil {
