@@ -94,9 +94,7 @@ func (l *Logger) Trace(ctx context.Context, begin time.Time, fc func() (string, 
 		)
 	}
 }
-
-// Debug логирует сообщение на уровне DEBUG
-func (l *Logger) Debug(msg string, keysAndValues ...any) {
+func (l *Logger) Debug(ctx context.Context, msg string, keysAndValues ...any) {
 	if l.debugMode {
 		l.internalLogger.Debug(msg, keysAndValues...)
 	}

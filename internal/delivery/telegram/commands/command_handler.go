@@ -3,7 +3,9 @@ package commands
 import (
 	"context"
 	"morty-smith-34-c/internal/app/usecase"
+	"morty-smith-34-c/internal/delivery/telegram"
 	"morty-smith-34-c/internal/storage/cache"
+	"morty-smith-34-c/pkg/logger"
 	"strings"
 
 	"github.com/go-telegram/bot"
@@ -14,13 +16,17 @@ type CommandHandler struct {
 	ChatUseCase *usecase.ChatUseCase // Логика работы с чатами
 	UserUseCase *usecase.UserUseCase // Логика проверки пользователей
 	chatCache   *cache.ChatCache
+	userHandler *telegram.UserHandler
+	logger      *logger.Logger
 }
 
-func NewCommandHandler(chatUseCase *usecase.ChatUseCase, userUseCase *usecase.UserUseCase, chatCache *cache.ChatCache) *CommandHandler {
+func NewCommandHandler(log *logger.Logger, chatUseCase *usecase.ChatUseCase, userUseCase *usecase.UserUseCase, chatCache *cache.ChatCache, userHandler *telegram.UserHandler) *CommandHandler {
 	return &CommandHandler{
 		ChatUseCase: chatUseCase,
 		UserUseCase: userUseCase,
 		chatCache:   chatCache,
+		userHandler: userHandler,
+		logger:      log,
 	}
 }
 

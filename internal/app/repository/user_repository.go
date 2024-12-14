@@ -10,6 +10,7 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user *entity.User) error
 	GetByTelegramID(ctx context.Context, telegramID int64) (*entity.User, error)
+	UpdateRole(ctx context.Context, telegramID int64, role string) error
 	Exists(ctx context.Context, telegramID int64) (bool, error)
 }
 
@@ -32,6 +33,13 @@ func (r *PostgresUserRepository) GetByTelegramID(ctx context.Context, telegramID
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *PostgresUserRepository) UpdateRole(ctx context.Context, telegramID int64, role string) error {
+	return r.DB.WithContext(ctx).
+		Model(&entity.User{}).
+		Where("telegram_id = ?", telegramID).
+		Update("role", role).Error
 }
 
 func (r *PostgresUserRepository) Exists(ctx context.Context, telegramID int64) (bool, error) {

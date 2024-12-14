@@ -38,6 +38,10 @@ func (u *UserUseCase) CheckRole(ctx context.Context, telegramID int64, allowedRo
 	return errors.New("permission denied")
 }
 
+func (u *UserUseCase) UpdateRole(ctx context.Context, telegramID int64, role string) error {
+	return u.UserRepo.UpdateRole(ctx, telegramID, role)
+}
+
 func (u *UserUseCase) SaveNickname(ctx context.Context, telegramID int64, nickname string) error {
 	user := &entity.User{
 		TelegramID: telegramID,

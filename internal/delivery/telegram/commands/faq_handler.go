@@ -12,14 +12,14 @@ import (
 func (h *CommandHandler) FaqHandle(ctx context.Context, b *bot.Bot, msg *models.Message) {
 	faq, exists := h.chatCache.GetFaq(msg.Chat.ID)
 	if !exists {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: msg.Chat.ID,
-			Text:   fmt.Sprintf("Ох\\, %s\\. Я не могу тебе помочь \\:\\(", telegram.GenerateMention(msg.From)),
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: msg.ID,
-			},
-			ParseMode: models.ParseModeMarkdown,
-		})
+		// b.SendMessage(ctx, &bot.SendMessageParams{
+		// 	ChatID: msg.Chat.ID,
+		// 	Text:   fmt.Sprintf("Ох\\, %s\\. Я не могу тебе помочь \\:\\(", telegram.GenerateMention(msg.From)),
+		// 	ReplyParameters: &models.ReplyParameters{
+		// 		MessageID: msg.ID,
+		// 	},
+		// 	ParseMode: models.ParseModeMarkdown,
+		// })
 		return
 	}
 	b.SendMessage(ctx, &bot.SendMessageParams{

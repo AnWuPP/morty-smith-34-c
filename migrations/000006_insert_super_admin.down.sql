@@ -1,0 +1,1 @@
+DELETE FROM users WHERE telegram_id = '863489715';

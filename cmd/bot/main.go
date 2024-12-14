@@ -70,8 +70,8 @@ func main() {
 	}
 
 	// Создаём обработчики
-	commandHandler := commands.NewCommandHandler(chatUseCase, userUseCase, chatCache)
 	userHandler := telegram.NewUserHandler(chatUseCase, userUseCase, jwtService)
+	commandHandler := commands.NewCommandHandler(log, chatUseCase, userUseCase, chatCache, userHandler)
 
 	botOptions := []bot.Option{
 		bot.WithDefaultHandler(func(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -103,7 +103,7 @@ func main() {
 	}
 
 	// Регистрируем команды
-	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/morty_come_here", bot.MatchTypeExact, func(ctx context.Context, b *bot.Bot, update *models.Update) {
+	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/morty_come_here", bot.MatchTypePrefix, func(ctx context.Context, b *bot.Bot, update *models.Update) {
 		commandHandler.HandleCommand(ctx, b, update.Message)
 	})
 
@@ -135,9 +135,17 @@ func main() {
 		commandHandler.RulesHandle(ctx, b, update.Message)
 	})
 
+	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/save", bot.MatchTypeExact, func(ctx context.Context, b *bot.Bot, update *models.Update) {
+		commandHandler.SaveHandle(ctx, b, update.Message)
+	})
+
+	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/role", bot.MatchTypePrefix, func(ctx context.Context, b *bot.Bot, update *models.Update) {
+		commandHandler.RoleHandle(ctx, b, update.Message)
+	})
+
 	if cfg.Debug {
 		tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/test", bot.MatchTypePrefix, func(ctx context.Context, b *bot.Bot, update *models.Update) {
-			log.Debug("Test cmd")
+			log.Debug(ctx, "Test cmd")
 		})
 	}
 
