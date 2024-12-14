@@ -38,6 +38,7 @@ func main() {
 	)
 	if err != nil {
 		log.Error(ctx, "Failed to connect to database: %v", err)
+		os.Exit(1)
 	}
 
 	// Инициализируем репозитории и usecases
@@ -59,6 +60,7 @@ func main() {
 	// Выполняем первичную аутентификацию
 	if err := jwtService.Authenticate(ctx); err != nil {
 		log.Error(ctx, "Failed to authenticate with School API: %v", err)
+		os.Exit(1)
 	}
 
 	// Создаем кеш для идов ThreadID
@@ -67,6 +69,7 @@ func main() {
 	// Загружаем данные из базы в кеш
 	if err := chatCache.LoadFromDatabase(ctx, chatUseCase); err != nil {
 		log.Error(ctx, "Failed to load chats from database: %v", err)
+		os.Exit(1)
 	}
 
 	// Создаём обработчики
@@ -103,6 +106,7 @@ func main() {
 	tgBot, err := bot.New(cfg.BotToken, botOptions...)
 	if err != nil {
 		log.Error(ctx, "Failed to initialize Telegram bot: %v", err)
+		os.Exit(1)
 	}
 
 	// Регистрируем команды
@@ -157,6 +161,6 @@ func main() {
 		tgBot.Close(ctx)
 		log.Info(ctx, "Bot has stopped gracefully")
 	}()
-	log.Info(ctx, "Bot is running...")
+	log.Info(ctx, "Morty Smith 34-C: I'm a live!")
 	tgBot.Start(ctx)
 }
