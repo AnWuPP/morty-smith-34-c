@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"morty-smith-34-c/internal/delivery/telegram"
+	"time"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -31,6 +32,7 @@ func (h *CommandHandler) handleUnmute(ctx context.Context, b *bot.Bot, msg *mode
 			CanSendVideoNotes:     true,
 			CanSendVoiceNotes:     true,
 		},
+		UntilDate: int(time.Now().Add(time.Second * 30).Unix()),
 	})
 	if err != nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{

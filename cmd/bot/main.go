@@ -75,7 +75,7 @@ func main() {
 
 	botOptions := []bot.Option{
 		bot.WithDefaultHandler(func(ctx context.Context, b *bot.Bot, update *models.Update) {
-			if update.Message == nil || update == nil {
+			if update == nil || update.Message == nil {
 				return
 			}
 			threadID, ok := chatCache.GetThreadID(update.Message.Chat.ID)
