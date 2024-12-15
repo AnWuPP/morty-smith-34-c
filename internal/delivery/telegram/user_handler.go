@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"morty-smith-34-c/internal/app/usecase"
-	"morty-smith-34-c/internal/pkg/jwtservice"
+	"morty-smith-34-c/internal/school"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -18,13 +18,13 @@ import (
 type UserHandler struct {
 	ChatUseCase *usecase.ChatUseCase // Указатель на ChatUseCase
 	UserUseCase *usecase.UserUseCase // Указатель на UserUseCase
-	jwtService  jwtservice.JWTService
+	jwtService  school.JWTService
 	timers      map[int64]*time.Timer // Таймеры для пользователей
 	messageIDs  map[int64]int         // Сообщения для удаления
 	mu          sync.Mutex            // Защита при доступе к timers/messageIDs
 }
 
-func NewUserHandler(chatUseCase *usecase.ChatUseCase, userUseCase *usecase.UserUseCase, jwtService jwtservice.JWTService) *UserHandler {
+func NewUserHandler(chatUseCase *usecase.ChatUseCase, userUseCase *usecase.UserUseCase, jwtService school.JWTService) *UserHandler {
 	return &UserHandler{
 		ChatUseCase: chatUseCase,
 		UserUseCase: userUseCase,
