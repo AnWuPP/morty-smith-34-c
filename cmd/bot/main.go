@@ -5,12 +5,13 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"time"
 
 	"morty-smith-34-c/internal/app/repository"
 	"morty-smith-34-c/internal/app/usecase"
 	"morty-smith-34-c/internal/delivery/telegram"
 	"morty-smith-34-c/internal/delivery/telegram/commands"
-	"morty-smith-34-c/internal/pkg/jwtservice"
+	"morty-smith-34-c/internal/school"
 	"morty-smith-34-c/internal/storage/cache"
 	"morty-smith-34-c/internal/storage/postgres"
 	"morty-smith-34-c/pkg/config"
@@ -47,14 +48,18 @@ func main() {
 	chatUseCase := usecase.NewChatUseCase(chatRepo)
 	userUseCase := usecase.NewUserUseCase(userRepo)
 
+	// Очередь запросов к апи
+	apiQueue := school.NewAPIQueue(3, time.Second, nil, log)
+	apiQueue.Start(ctx) // Теперь запросики крутятся
+
 	// Инициализируем JWTService
-	jwtService := jwtservice.NewJWTService(
+	jwtService := school.NewJWTService(
 		cfg.SchoolUsername,
 		cfg.SchoolPassword,
 		cfg.SchoolTokenURL,   // URL для аутентификации
 		cfg.SchoolBaseApiURL, // URL для API запросов
-		nil,
 		log,
+		apiQueue,
 	)
 
 	// Выполняем первичную аутентификацию

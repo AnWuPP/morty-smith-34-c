@@ -1,4 +1,4 @@
-package jwtservice
+package school
 
 import (
 	"bytes"
@@ -27,9 +27,9 @@ type jwtService struct {
 	password     string
 	authEndpoint string
 	apiBaseURL   string
-	httpClient   *http.Client
 	tokenCache   *TokenCache
 	logger       *logger.Logger
+	apiQueue     *APIQueue
 }
 
 // TokenCache - структура для хранения токенов в памяти.
@@ -63,47 +63,46 @@ type UserResponse struct {
 }
 
 // NewJWTService создает новый экземпляр jwtService.
-func NewJWTService(username, password, authEndpoint, apiBaseURL string, httpClient *http.Client, logger *logger.Logger) JWTService {
-	if httpClient == nil {
-		httpClient = &http.Client{}
-	}
+func NewJWTService(username, password, authEndpoint, apiBaseURL string, logger *logger.Logger, apiQueue *APIQueue) JWTService {
 	return &jwtService{
 		username:     username,
 		password:     password,
 		authEndpoint: authEndpoint,
 		apiBaseURL:   apiBaseURL,
-		httpClient:   httpClient,
 		tokenCache:   &TokenCache{},
 		logger:       logger,
+		apiQueue:     apiQueue,
 	}
 }
 
 // Authenticate - выполняет первичную аутентификацию и сохраняет токены.
 func (j *jwtService) Authenticate(ctx context.Context) error {
 	data := fmt.Sprintf("client_id=s21-open-api&username=%s&password=%s&grant_type=password", j.username, j.password)
-	req, err := http.NewRequest("POST", j.authEndpoint, bytes.NewBuffer([]byte(data)))
-	if err != nil {
-		j.logger.Error(ctx, fmt.Sprintf("Failed to create request: %v", err))
-		return err
+	headers := map[string]string{
+		"Content-Type": "application/x-www-form-urlencoded",
 	}
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	responseChan := j.apiQueue.AddRequest(ctx, "POST", j.authEndpoint, headers, bytes.NewBuffer([]byte(data)))
+	result := <-responseChan
 
-	resp, err := j.httpClient.Do(req)
-	if err != nil {
-		j.logger.Error(ctx, fmt.Sprintf("Failed to send request: %v", err))
+	resp, ok := result.(*http.Response)
+	if !ok || resp == nil {
+		err := fmt.Errorf("failed to authenticate, invalid response: %v", result)
+		j.logger.Error(ctx, err.Error())
 		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		j.logger.Error(ctx, fmt.Sprintf("Authorization failed: %s", string(body)))
-		return errors.New("authorization failed")
+		err := fmt.Errorf("authorization failed: %s", string(body))
+		j.logger.Error(ctx, err.Error())
+		return err
 	}
 
 	var jwtResponse JwtResponse
 	if err := json.NewDecoder(resp.Body).Decode(&jwtResponse); err != nil {
-		j.logger.Error(ctx, fmt.Sprintf("Failed to parse response: %v", err))
+		err := fmt.Errorf("failed to parse response: %w", err)
+		j.logger.Error(ctx, err.Error())
 		return err
 	}
 
@@ -124,29 +123,31 @@ func (j *jwtService) RefreshTokens(ctx context.Context) error {
 	j.tokenCache.RUnlock()
 
 	data := fmt.Sprintf("client_id=s21-open-api&grant_type=refresh_token&refresh_token=%s", refreshToken)
-	req, err := http.NewRequest("POST", j.authEndpoint, bytes.NewBuffer([]byte(data)))
-	if err != nil {
-		j.logger.Error(ctx, fmt.Sprintf("Failed to create request: %v", err))
-		return err
+	headers := map[string]string{
+		"Content-Type": "application/x-www-form-urlencoded",
 	}
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	responseChan := j.apiQueue.AddRequest(ctx, "POST", j.authEndpoint, headers, bytes.NewBuffer([]byte(data)))
+	result := <-responseChan
 
-	resp, err := j.httpClient.Do(req)
-	if err != nil {
-		j.logger.Error(ctx, fmt.Sprintf("Failed to send request: %v", err))
+	resp, ok := result.(*http.Response)
+	if !ok || resp == nil {
+		err := fmt.Errorf("failed to refresh tokens, invalid response: %v", result)
+		j.logger.Error(ctx, err.Error())
 		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		j.logger.Error(ctx, fmt.Sprintf("Failed to refresh tokens: %s", string(body)))
-		return errors.New("failed to refresh tokens")
+		err := fmt.Errorf("failed to refresh tokens: %s", string(body))
+		j.logger.Error(ctx, err.Error())
+		return err
 	}
 
 	var jwtResponse JwtResponse
 	if err := json.NewDecoder(resp.Body).Decode(&jwtResponse); err != nil {
-		j.logger.Error(ctx, fmt.Sprintf("Failed to parse response: %v", err))
+		err := fmt.Errorf("failed to parse response: %w", err)
+		j.logger.Error(ctx, err.Error())
 		return err
 	}
 
@@ -194,18 +195,17 @@ func (j *jwtService) checkUserWithRetry(ctx context.Context, login string, retri
 
 	// Формируем URL для API запроса
 	url := fmt.Sprintf("%s/participants/%s", j.apiBaseURL, login)
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		j.logger.Error(ctx, fmt.Sprintf("Failed to create request: %v", err))
-		return nil, fmt.Errorf("failed to create request: %w", err)
+	headers := map[string]string{
+		"Authorization": "Bearer " + token,
 	}
-	req.Header.Add("Authorization", "Bearer "+token)
+	responseChan := j.apiQueue.AddRequest(ctx, "GET", url, headers, nil)
+	result := <-responseChan
 
-	// Выполняем запрос
-	resp, err := j.httpClient.Do(req)
-	if err != nil {
-		j.logger.Error(ctx, fmt.Sprintf("Failed to send request: %v", err))
-		return nil, fmt.Errorf("failed to send request: %w", err)
+	resp, ok := result.(*http.Response)
+	if !ok || resp == nil {
+		err := fmt.Errorf("failed to check user, invalid response: %v", result)
+		j.logger.Error(ctx, err.Error())
+		return nil, err
 	}
 	defer resp.Body.Close()
 
@@ -227,21 +227,24 @@ func (j *jwtService) checkUserWithRetry(ctx context.Context, login string, retri
 	}
 
 	if resp.StatusCode == http.StatusNotFound {
-		j.logger.Info(ctx, fmt.Sprintf("User not found: %s", login))
-		return nil, errors.New("user not found")
+		err := fmt.Errorf("user not found: %s", login)
+		j.logger.Info(ctx, err.Error())
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		j.logger.Error(ctx, fmt.Sprintf("Failed to check user: %s", string(body)))
-		return nil, fmt.Errorf("failed to check user: %s", string(body))
+		err := fmt.Errorf("failed to check user: %s", string(body))
+		j.logger.Error(ctx, err.Error())
+		return nil, err
 	}
 
 	// Декодируем JSON ответ
 	var userResponse UserResponse
 	if err := json.NewDecoder(resp.Body).Decode(&userResponse); err != nil {
-		j.logger.Error(ctx, fmt.Sprintf("Failed to parse response: %v", err))
-		return nil, fmt.Errorf("failed to parse response: %w", err)
+		err := fmt.Errorf("failed to parse response: %w", err)
+		j.logger.Error(ctx, err.Error())
+		return nil, err
 	}
 
 	// Дополнительные проверки
