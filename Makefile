@@ -16,6 +16,11 @@ run:
 	@echo "Запускаем бота..."
 	$(GO) run cmd/bot/main.go
 
+.PHONY: clean
+clean:
+	@echo "Почистим мусор"
+	rm -rf bot.log
+
 # Создание новой миграции
 .PHONY: migration-create
 migration-create:

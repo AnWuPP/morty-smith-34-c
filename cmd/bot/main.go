@@ -77,6 +77,12 @@ func main() {
 	commandHandler := commands.NewCommandHandler(log, chatUseCase, userUseCase, chatCache, userHandler)
 
 	botOptions := []bot.Option{
+		bot.WithDebugHandler(func(format string, args ...interface{}) {
+			log.Debug(ctx, format, args...)
+		}),
+		bot.WithErrorsHandler(func(err error) {
+			log.Error(ctx, err.Error())
+		}),
 		bot.WithDefaultHandler(func(ctx context.Context, b *bot.Bot, update *models.Update) {
 			if update == nil || update.Message == nil {
 				return

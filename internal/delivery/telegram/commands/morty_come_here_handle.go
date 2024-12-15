@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"log"
 	"morty-smith-34-c/internal/app/entity"
 
 	"github.com/go-telegram/bot"
@@ -11,6 +10,7 @@ import (
 
 func (h *CommandHandler) handleMortyComeHere(ctx context.Context, b *bot.Bot, msg *models.Message, args []string) {
 	if len(args) < 2 {
+		h.logger.Debug(ctx, "handlerMortyComeHere: missing campus. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:          msg.Chat.ID,
 			MessageThreadID: msg.MessageThreadID,
@@ -24,7 +24,7 @@ func (h *CommandHandler) handleMortyComeHere(ctx context.Context, b *bot.Bot, ms
 		CampusName: campusName,
 	})
 	if err != nil {
-		log.Printf("Failed to activate chat: %v", err)
+		h.logger.Error(ctx, "handlerMortyComeHere: create campus erre. text: %s | user: %v | chat: %v | err: %v", msg.Text, msg.From, msg.Chat, err)
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:          msg.Chat.ID,
 			MessageThreadID: msg.MessageThreadID,
@@ -32,6 +32,7 @@ func (h *CommandHandler) handleMortyComeHere(ctx context.Context, b *bot.Bot, ms
 		})
 		return
 	}
+	h.logger.Debug(ctx, "handlerMortyComeHere: campus created. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:          msg.Chat.ID,
 		MessageThreadID: msg.MessageThreadID,

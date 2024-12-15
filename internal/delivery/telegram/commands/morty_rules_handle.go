@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	"github.com/go-telegram/bot"
@@ -11,6 +10,7 @@ import (
 
 func (h *CommandHandler) handleMortyRules(ctx context.Context, b *bot.Bot, msg *models.Message, args []string) {
 	if len(args) < 2 {
+		h.logger.Debug(ctx, "handleMortyRules: missing args. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:          msg.Chat.ID,
 			MessageThreadID: msg.MessageThreadID,
@@ -18,7 +18,8 @@ func (h *CommandHandler) handleMortyRules(ctx context.Context, b *bot.Bot, msg *
 		})
 		return
 	}
-	if msg.ReplyToMessage != nil {
+	if msg.ReplyToMessage != nil && msg.ReplyToMessage.ID != msg.ReplyToMessage.MessageThreadID {
+		h.logger.Debug(ctx, "handleMortyRules: message is reply. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:          msg.Chat.ID,
 			MessageThreadID: msg.MessageThreadID,
@@ -29,7 +30,7 @@ func (h *CommandHandler) handleMortyRules(ctx context.Context, b *bot.Bot, msg *
 	rules := strings.Join(args[1:], " ")
 	err := h.ChatUseCase.UpdateRulesLink(ctx, msg.Chat.ID, rules)
 	if err != nil {
-		log.Printf("Failed to set rules link: %v", err)
+		h.logger.Error(ctx, "handleMortyRules: save rules error. text: %s | user: %v | chat: %v | err: %v", msg.Text, msg.From, msg.Chat, err)
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:          msg.Chat.ID,
 			MessageThreadID: msg.MessageThreadID,
@@ -37,6 +38,7 @@ func (h *CommandHandler) handleMortyRules(ctx context.Context, b *bot.Bot, msg *
 		})
 		return
 	}
+	h.logger.Debug(ctx, "handleMortyRules: save rules. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
 	h.chatCache.SetRules(msg.Chat.ID, rules)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:          msg.Chat.ID,

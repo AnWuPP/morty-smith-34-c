@@ -11,17 +11,21 @@ import (
 
 func (h *CommandHandler) SaveHandle(ctx context.Context, b *bot.Bot, msg *models.Message) {
 	if msg.ReplyToMessage == nil || msg.ReplyToMessage.ID == msg.ReplyToMessage.MessageThreadID {
+		h.logger.Debug(ctx, "SaveHandle: message is not reply. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
 		return
 	}
 	err := h.UserUseCase.CheckRole(ctx, msg.From.ID, []string{"admin", "superadmin"})
 	if err != nil {
+		h.logger.Debug(ctx, "SaveHandle: user is not admin or superadmin. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
 		return
 	}
 	exists, err := h.UserUseCase.Exists(ctx, msg.ReplyToMessage.From.ID)
 	if err != nil {
+		h.logger.Error(ctx, "SaveHandle: check user exists. text: %s | user: %v | for: %v | chat: %v", msg.Text, msg.From, msg.ReplyToMessage.From, msg.Chat)
 		return
 	}
 	if exists {
+		h.logger.Debug(ctx, "SaveHandle: user exists. text: %s | user: %v | for: %v | chat: %v", msg.Text, msg.From, msg.ReplyToMessage.From, msg.Chat)
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: msg.Chat.ID,
 			Text:   fmt.Sprintf("О\\-ох\\, %s\\, кажется\\, я уже знаю его\\!", telegram.GenerateMention(msg.From)),
@@ -34,7 +38,7 @@ func (h *CommandHandler) SaveHandle(ctx context.Context, b *bot.Bot, msg *models
 	}
 	err = h.UserUseCase.SaveNickname(ctx, msg.ReplyToMessage.From.ID, fmt.Sprintf("%d", msg.ReplyToMessage.From.ID))
 	if err != nil {
-		h.logger.Error(ctx, "Error save %d with nick %s", msg.ReplyToMessage.From.ID, msg.ReplyToMessage.Text)
+		h.logger.Error(ctx, "SaveHandle: dont save user. text: %s | user: %v | for: %v | chat: %v", msg.Text, msg.From, msg.ReplyToMessage.From, msg.Chat)
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:          msg.Chat.ID,
 			MessageThreadID: msg.MessageThreadID,
@@ -45,6 +49,7 @@ func (h *CommandHandler) SaveHandle(ctx context.Context, b *bot.Bot, msg *models
 		})
 		return
 	}
+	h.logger.Info(ctx, "SaveHandle: save user. text: %s | user: %v | for: %v | chat: %v", msg.Text, msg.From, msg.ReplyToMessage.From, msg.Chat)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:          msg.Chat.ID,
 		MessageThreadID: msg.MessageThreadID,
