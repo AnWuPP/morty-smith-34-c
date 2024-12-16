@@ -227,7 +227,7 @@ func (j *jwtService) checkUserWithRetry(ctx context.Context, login string, retri
 	}
 
 	if resp.StatusCode == http.StatusNotFound {
-		err := fmt.Errorf("user not found: %s", login)
+		err := fmt.Errorf("user not found")
 		j.logger.Debug(ctx, err.Error())
 		return nil, err
 	}
