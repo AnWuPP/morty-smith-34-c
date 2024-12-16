@@ -1,5 +1,5 @@
 ALTER TABLE chats
-MODIFY COLUMN rules_link TEXT;
+ALTER COLUMN rules_link TYPE TEXT;
 
 ALTER TABLE chats
-MODIFY COLUMN faq_link TEXT;
+ALTER COLUMN faq_link TYPE TEXT;
