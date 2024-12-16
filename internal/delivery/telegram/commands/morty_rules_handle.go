@@ -28,7 +28,7 @@ func (h *CommandHandler) handleMortyRules(ctx context.Context, b *bot.Bot, msg *
 		})
 		return
 	}
-	rules := strings.TrimPrefix("/morty_rules", msg.Text)
+	rules := strings.TrimPrefix(msg.Text, "/morty_rules")
 	err := h.ChatUseCase.UpdateRulesLink(ctx, msg.Chat.ID, rules)
 	if err != nil {
 		h.logger.Error(ctx, "handleMortyRules: save rules error",
