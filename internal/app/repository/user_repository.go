@@ -58,7 +58,7 @@ func (r *PostgresUserRepository) Exists(ctx context.Context, telegramID int64) (
 
 func (r *PostgresUserRepository) UpdateSchoolNick(ctx context.Context, telegramID int64, nick string) (bool, error) {
 	var user struct {
-		SchoolNick string
+		SchoolName string
 	}
 
 	if err := r.DB.WithContext(ctx).Model(&entity.User{}).Select("school_name").Where("telegram_id = ?", telegramID).First(&user).Error; err != nil {
@@ -68,7 +68,7 @@ func (r *PostgresUserRepository) UpdateSchoolNick(ctx context.Context, telegramI
 		return false, err
 	}
 
-	if user.SchoolNick == nick {
+	if user.SchoolName == nick {
 		return false, nil
 	}
 
