@@ -20,7 +20,7 @@ type Request struct {
 	Response chan interface{}
 }
 
-// APIQueue - структура для очереди запросов.
+// APIQueue - структура очереди запросов.
 type APIQueue struct {
 	httpClient   *http.Client
 	requestQueue chan Request
@@ -38,7 +38,7 @@ func NewAPIQueue(maxRequests int, interval time.Duration, httpClient *http.Clien
 	}
 	return &APIQueue{
 		httpClient:   httpClient,
-		requestQueue: make(chan Request, 500), // Buffered channel for requests
+		requestQueue: make(chan Request, 500),
 		maxRequests:  maxRequests,
 		interval:     interval,
 		logger:       logger,

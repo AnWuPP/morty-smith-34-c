@@ -13,7 +13,11 @@ import (
 // handleUnmute handles the /unmute command
 func (h *CommandHandler) handleUnmute(ctx context.Context, b *bot.Bot, msg *models.Message) {
 	if msg.ReplyToMessage == nil || msg.ReplyToMessage.ID == msg.ReplyToMessage.MessageThreadID {
-		h.logger.Debug(ctx, "handleUnmute: message is not reply. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
+		h.logger.Debug(ctx, "handleUnmute: message is not reply",
+			"text", msg.Text,
+			"user", telegram.UserForLogger(msg.From),
+			"chat", telegram.ChatForLogger(msg.Chat),
+		)
 		return
 	}
 
@@ -36,7 +40,13 @@ func (h *CommandHandler) handleUnmute(ctx context.Context, b *bot.Bot, msg *mode
 		UntilDate: int(time.Now().Add(time.Second * 30).Unix()),
 	})
 	if err != nil {
-		h.logger.Debug(ctx, "handleUnmute: message is not reply. text: %s | user: %v | for: %v | chat: %v | err: %v", msg.Text, msg.From, msg.ReplyToMessage.From, msg.Chat, err)
+		h.logger.Debug(ctx, "handleUnmute: cant unmute",
+			"text", msg.Text,
+			"user", telegram.UserForLogger(msg.From),
+			"for", telegram.UserForLogger(msg.ReplyToMessage.From),
+			"chat", telegram.ChatForLogger(msg.Chat),
+			"err", err,
+		)
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: msg.Chat.ID,
 			Text:   fmt.Sprintf("О нет\\! Не могу размутить %s\\, %s\\, помоги мне\\!", telegram.GenerateMention(msg.ReplyToMessage.From), telegram.GenerateMention(msg.From)),
@@ -48,7 +58,12 @@ func (h *CommandHandler) handleUnmute(ctx context.Context, b *bot.Bot, msg *mode
 		return
 	}
 
-	h.logger.Info(ctx, "handleUnmute: unmute. text: %s | user: %v | for: %v | chat: %v", msg.Text, msg.From, msg.ReplyToMessage.From, msg.Chat)
+	h.logger.Info(ctx, "handleUnmute: unmute",
+		"text", msg.Text,
+		"user", telegram.UserForLogger(msg.From),
+		"for", telegram.UserForLogger(msg.ReplyToMessage.From),
+		"chat", telegram.ChatForLogger(msg.Chat),
+	)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: msg.Chat.ID,
 		Text:   fmt.Sprintf("Фух\\! %s размучен\\, %s\\, ты герой\\!", telegram.GenerateMention(msg.ReplyToMessage.From), telegram.GenerateMention(msg.From)),

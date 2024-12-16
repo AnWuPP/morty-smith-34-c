@@ -3,40 +3,41 @@ package telegram
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"sync"
 	"time"
 
 	"morty-smith-34-c/internal/app/usecase"
 	"morty-smith-34-c/internal/school"
+	"morty-smith-34-c/pkg/logger"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 )
 
 type UserHandler struct {
-	ChatUseCase *usecase.ChatUseCase // Указатель на ChatUseCase
-	UserUseCase *usecase.UserUseCase // Указатель на UserUseCase
+	ChatUseCase *usecase.ChatUseCase
+	UserUseCase *usecase.UserUseCase
 	jwtService  school.JWTService
-	timers      map[int64]*time.Timer // Таймеры для пользователей
-	messageIDs  map[int64]int         // Сообщения для удаления
-	mu          sync.Mutex            // Защита при доступе к timers/messageIDs
+	timers      map[int64]*time.Timer
+	messageIDs  map[int64]int
+	mu          sync.Mutex
+	logger      *logger.Logger
 }
 
-func NewUserHandler(chatUseCase *usecase.ChatUseCase, userUseCase *usecase.UserUseCase, jwtService school.JWTService) *UserHandler {
+func NewUserHandler(logger *logger.Logger, chatUseCase *usecase.ChatUseCase, userUseCase *usecase.UserUseCase, jwtService school.JWTService) *UserHandler {
 	return &UserHandler{
 		ChatUseCase: chatUseCase,
 		UserUseCase: userUseCase,
 		jwtService:  jwtService,
 		timers:      make(map[int64]*time.Timer),
 		messageIDs:  make(map[int64]int),
+		logger:      logger,
 	}
 }
 
 func (h *UserHandler) HandleNewMembers(ctx context.Context, b *bot.Bot, msg *models.Message, threadID int) {
 	readableChatID := strconv.FormatInt(msg.Chat.ID, 10)[4:]
-
 	b.DeleteMessage(ctx, &bot.DeleteMessageParams{
 		ChatID:    msg.Chat.ID,
 		MessageID: msg.ID,
@@ -44,7 +45,11 @@ func (h *UserHandler) HandleNewMembers(ctx context.Context, b *bot.Bot, msg *mod
 	for _, user := range msg.NewChatMembers {
 		exists, err := h.UserUseCase.Exists(ctx, user.ID)
 		if err != nil {
-			log.Printf("Failed to check user existence: %v", err)
+			h.logger.Error(ctx, "HandleNewMembers: Failed to check user existence",
+				"user", UserForLogger(msg.From),
+				"chat", ChatForLogger(msg.Chat),
+				"err", err,
+			)
 			continue
 		}
 
@@ -54,13 +59,17 @@ func (h *UserHandler) HandleNewMembers(ctx context.Context, b *bot.Bot, msg *mod
 				ChatID:          msg.Chat.ID,
 				MessageThreadID: msg.MessageThreadID,
 				Text: fmt.Sprintf(
-					"Эй\\, [%s](tg://user?id=%d)\\! Ты снова здесь\\? Как круто\\! Добро пожаловать обратно\\, чувак\\! Надеюсь\\, ты готов к тому\\, что Рик опять начнёт шутить про тебя\\!",
-					user.FirstName, user.ID,
+					"Эй\\, %s\\! Ты снова здесь\\? Как круто\\! Добро пожаловать обратно\\, чувак\\! Надеюсь\\, ты готов к тому\\, что Рик опять начнёт шутить про тебя\\!",
+					GenerateMention(&user),
 				),
 				ParseMode: models.ParseModeMarkdown,
 			})
 			if err != nil {
-				log.Printf("Failed to send message: %v", err)
+				h.logger.Debug(ctx, "HandleNewMembers: Failed to send welcome back message",
+					"user", UserForLogger(msg.From),
+					"chat", ChatForLogger(msg.Chat),
+					"err", err,
+				)
 				continue
 			}
 			time.AfterFunc(time.Minute*2, func() {
@@ -75,13 +84,17 @@ func (h *UserHandler) HandleNewMembers(ctx context.Context, b *bot.Bot, msg *mod
 			ChatID:          msg.Chat.ID,
 			MessageThreadID: msg.MessageThreadID,
 			Text: fmt.Sprintf(
-				"О\\-о\\-ох\\, эй\\, [%s](tg://user?id=%d)\\, ты новенький\\, да\\? Ладно, послушай\\! Тебе нужно сбросить [сюда](https://t.me/c/%s/%d) свой школьный ник\\, м\\-может быть\\, окей\\? Зачем\\? А\\-а\\-а\\-а я не знаю\\, просто правила такие\\! Ну\\, пожалуйста\\, сделай это\\, пока Рик не начал ворчать\\!",
-				user.FirstName, user.ID, readableChatID, threadID,
+				"О\\-о\\-ох\\, эй\\, %s\\, ты новенький\\, да\\? Ладно, послушай\\! Тебе нужно сбросить [сюда](https://t.me/c/%s/%d) свой школьный ник\\, м\\-может быть\\, окей\\? Зачем\\? А\\-а\\-а\\-а я не знаю\\, просто правила такие\\! Ну\\, пожалуйста\\, сделай это\\, пока Рик не начал ворчать\\!",
+				GenerateMention(&user), readableChatID, threadID,
 			),
 			ParseMode: models.ParseModeMarkdown,
 		})
 		if err != nil {
-			log.Printf("Failed to send message: %v", err)
+			h.logger.Debug(ctx, "HandleNewMembers: Failed to send welcome message",
+				"user", UserForLogger(msg.From),
+				"chat", ChatForLogger(msg.Chat),
+				"err", err,
+			)
 			continue
 		}
 
@@ -105,7 +118,11 @@ func (h *UserHandler) HandleNewMembers(ctx context.Context, b *bot.Bot, msg *mod
 					UntilDate: 0,
 				})
 				if err != nil {
-					log.Printf("Failed to ban user: %v", err)
+					h.logger.Debug(ctx, "HandleNewMembers: Failed to ban user",
+						"user", UserForLogger(msg.From),
+						"chat", ChatForLogger(msg.Chat),
+						"err", err,
+					)
 				}
 
 				delete(h.timers, user.ID)
@@ -121,18 +138,26 @@ func (h *UserHandler) HandleNewMembers(ctx context.Context, b *bot.Bot, msg *mod
 
 func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *models.Message) {
 	if _, exists := h.timers[msg.From.ID]; !exists {
+		h.logger.Debug(ctx, "HandleNickname: User does not have timer",
+			"text", msg.Text,
+			"user", UserForLogger(msg.From),
+			"chat", ChatForLogger(msg.Chat),
+		)
 		return
 	}
-
-	// Проверяем ник через JWTService
-	userInfo, err := h.jwtService.CheckUser(ctx, msg.Text)
+	_, err := h.jwtService.CheckUser(ctx, msg.Text)
 	if err != nil {
 		if err.Error() == "user not found" {
+			h.logger.Info(ctx, "HandleNickname: User not found in School API",
+				"text", msg.Text,
+				"user", UserForLogger(msg.From),
+				"chat", ChatForLogger(msg.Chat),
+			)
 			sendMessage, _ := b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID: msg.Chat.ID,
 				Text: fmt.Sprintf(
-					"О нет\\, [%s](tg://user?id=%d)\\! Чувак\\, я тут\\.\\.\\. мм\\.\\.\\. я тут посмотрел\\, и ничего не нашёл\\! Может\\, ты неправильно написал\\? О\\-о\\-о\\, как мне теперь быть\\? Попробуй ещё раз\\, п\\-пожалуйста\\!",
-					msg.From.FirstName, msg.From.ID,
+					"О нет\\, %s\\! Чувак\\, я тут\\.\\.\\. мм\\.\\.\\. я тут посмотрел\\, и ничего не нашёл\\! Может\\, ты неправильно написал\\? О\\-о\\-о\\, как мне теперь быть\\? Попробуй ещё раз\\, п\\-пожалуйста\\!",
+					GenerateMention(msg.From),
 				),
 				ReplyParameters: &models.ReplyParameters{
 					MessageID: msg.ID,
@@ -141,8 +166,8 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 				ParseMode:       models.ParseModeMarkdown,
 			})
 			b.SetMessageReaction(ctx, &bot.SetMessageReactionParams{
-				ChatID:    msg.Chat.ID, // ID чата
-				MessageID: msg.ID,      // ID сообщения
+				ChatID:    msg.Chat.ID,
+				MessageID: msg.ID,
 				Reaction: []models.ReactionType{
 					{
 						Type:              models.ReactionTypeTypeEmoji,
@@ -171,12 +196,15 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 				UntilDate: 0,
 			})
 			if err != nil {
-				log.Printf("Failed to ban user: %v", err)
+				h.logger.Debug(ctx, "HandleNickname: Failed to ban user",
+					"user", UserForLogger(msg.From),
+					"chat", ChatForLogger(msg.Chat),
+				)
 			}
 
 			b.SetMessageReaction(ctx, &bot.SetMessageReactionParams{
-				ChatID:    msg.Chat.ID, // ID чата
-				MessageID: msg.ID,      // ID сообщения
+				ChatID:    msg.Chat.ID,
+				MessageID: msg.ID,
 				Reaction: []models.ReactionType{
 					{
 						Type:              models.ReactionTypeTypeEmoji,
@@ -188,7 +216,12 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 		}
 
 		// Ошибка при обращении к API
-		log.Printf("Failed to check user: %v", err)
+		h.logger.Error(ctx, "HandleNickname: Bad request to School API",
+			"text", msg.Text,
+			"user", UserForLogger(msg.From),
+			"chat", ChatForLogger(msg.Chat),
+			"err", err,
+		)
 		return
 	}
 
@@ -198,13 +231,18 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 	// Сохраняем ник в базе данных
 	err = h.UserUseCase.SaveNickname(ctx, msg.From.ID, msg.Text)
 	if err != nil {
-		log.Printf("Failed to save user to database: %v", err)
+		h.logger.Error(ctx, "HandleNickname: Error save to database",
+			"text", msg.Text,
+			"user", UserForLogger(msg.From),
+			"chat", ChatForLogger(msg.Chat),
+			"err", err,
+		)
 		return
 	}
 
 	b.SetMessageReaction(ctx, &bot.SetMessageReactionParams{
-		ChatID:    msg.Chat.ID, // ID чата
-		MessageID: msg.ID,      // ID сообщения
+		ChatID:    msg.Chat.ID,
+		MessageID: msg.ID,
 		Reaction: []models.ReactionType{
 			{
 				Type:              models.ReactionTypeTypeEmoji,
@@ -212,12 +250,17 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 			},
 		},
 	})
+	h.logger.Info(ctx, "HandleNickname: Validated user in School API",
+		"text", msg.Text,
+		"user", UserForLogger(msg.From),
+		"chat", ChatForLogger(msg.Chat),
+	)
 	// Подтверждение для пользователя
 	sendMessage, _ := b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: msg.Chat.ID,
 		Text: fmt.Sprintf(
-			"О\\-о\\-о\\, круто\\, [%s](tg://user?id=%d)\\! Я проверил\\, и всё в порядке\\. Ты — наш человек\\! Э\\-э, ну\\, ладно\\, наверное\\.\\.\\. мм\\, читай правила\\, чтобы не попасть в беду\\, окей\\? А я пойду спрячусь где\\-нибудь\\, пока Рик не начал шутить про меня\\.\\.\\.",
-			userInfo.Login, msg.From.ID,
+			"О\\-о\\-о\\, круто\\, %s\\! Я проверил\\, и всё в порядке\\. Ты — наш человек\\! Э\\-э, ну\\, ладно\\, наверное\\.\\.\\. мм\\, читай правила\\, чтобы не попасть в беду\\, окей\\? А я пойду спрячусь где\\-нибудь\\, пока Рик не начал шутить про меня\\.\\.\\.",
+			GenerateMention(msg.From),
 		),
 		ReplyParameters: &models.ReplyParameters{
 			MessageID: msg.ID,
@@ -225,8 +268,7 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 		LinkPreviewOptions: &models.LinkPreviewOptions{
 			IsDisabled: bot.True(),
 		},
-		MessageThreadID: msg.MessageThreadID,
-		ParseMode:       models.ParseModeMarkdown,
+		ParseMode: models.ParseModeMarkdown,
 	})
 	time.AfterFunc(time.Minute*2, func() {
 		b.DeleteMessage(ctx, &bot.DeleteMessageParams{

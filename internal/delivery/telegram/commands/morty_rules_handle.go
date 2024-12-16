@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"morty-smith-34-c/internal/delivery/telegram"
 	"strings"
 
 	"github.com/go-telegram/bot"
@@ -10,7 +11,7 @@ import (
 
 func (h *CommandHandler) handleMortyRules(ctx context.Context, b *bot.Bot, msg *models.Message, args []string) {
 	if len(args) < 2 {
-		h.logger.Debug(ctx, "handleMortyRules: missing args. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
+		h.logger.Debug(ctx, "handleMortyRules: missing args", "text", msg.Text, "user", telegram.UserForLogger(msg.From), "chat", telegram.ChatForLogger(msg.Chat))
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:          msg.Chat.ID,
 			MessageThreadID: msg.MessageThreadID,
@@ -19,7 +20,7 @@ func (h *CommandHandler) handleMortyRules(ctx context.Context, b *bot.Bot, msg *
 		return
 	}
 	if msg.ReplyToMessage != nil && msg.ReplyToMessage.ID != msg.ReplyToMessage.MessageThreadID {
-		h.logger.Debug(ctx, "handleMortyRules: message is reply. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
+		h.logger.Debug(ctx, "handleMortyRules: message is reply", "text", msg.Text, "user", telegram.UserForLogger(msg.From), "chat", telegram.ChatForLogger(msg.Chat))
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:          msg.Chat.ID,
 			MessageThreadID: msg.MessageThreadID,
@@ -27,10 +28,15 @@ func (h *CommandHandler) handleMortyRules(ctx context.Context, b *bot.Bot, msg *
 		})
 		return
 	}
-	rules := strings.Join(args[1:], " ")
+	rules := strings.TrimPrefix("/morty_rules", msg.Text)
 	err := h.ChatUseCase.UpdateRulesLink(ctx, msg.Chat.ID, rules)
 	if err != nil {
-		h.logger.Error(ctx, "handleMortyRules: save rules error. text: %s | user: %v | chat: %v | err: %v", msg.Text, msg.From, msg.Chat, err)
+		h.logger.Error(ctx, "handleMortyRules: save rules error",
+			"text", msg.Text,
+			"user", telegram.UserForLogger(msg.From),
+			"chat", telegram.ChatForLogger(msg.Chat),
+			"err", err,
+		)
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:          msg.Chat.ID,
 			MessageThreadID: msg.MessageThreadID,
@@ -38,7 +44,7 @@ func (h *CommandHandler) handleMortyRules(ctx context.Context, b *bot.Bot, msg *
 		})
 		return
 	}
-	h.logger.Debug(ctx, "handleMortyRules: save rules. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
+	h.logger.Debug(ctx, "handleMortyRules: save rules", "text", msg.Text, "user", telegram.UserForLogger(msg.From), "chat", telegram.ChatForLogger(msg.Chat))
 	h.chatCache.SetRules(msg.Chat.ID, rules)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:          msg.Chat.ID,
