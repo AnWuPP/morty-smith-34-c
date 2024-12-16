@@ -61,7 +61,7 @@ func (r *PostgresUserRepository) UpdateSchoolNick(ctx context.Context, telegramI
 		SchoolNick string
 	}
 
-	if err := r.DB.WithContext(ctx).Model(&entity.User{}).Select("school_nick").Where("telegram_id = ?", telegramID).First(&user).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Model(&entity.User{}).Select("school_name").Where("telegram_id = ?", telegramID).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, fmt.Errorf("user with telegram_id %d not found", telegramID)
 		}
@@ -72,13 +72,13 @@ func (r *PostgresUserRepository) UpdateSchoolNick(ctx context.Context, telegramI
 		return false, nil
 	}
 
-	result := r.DB.WithContext(ctx).Model(&entity.User{}).Where("telegram_id = ?", telegramID).Update("school_nick", nick)
+	result := r.DB.WithContext(ctx).Model(&entity.User{}).Where("telegram_id = ?", telegramID).Update("school_name", nick)
 	if result.Error != nil {
 		return false, result.Error
 	}
 
 	if result.RowsAffected == 0 {
-		return false, fmt.Errorf("failed to update school_nick for telegram_id %d", telegramID)
+		return false, fmt.Errorf("failed to update school_name for telegram_id %d", telegramID)
 	}
 
 	return true, nil
