@@ -12,7 +12,7 @@ import (
 
 func (h *CommandHandler) SaveHandle(ctx context.Context, b *bot.Bot, msg *models.Message) {
 	args := strings.Fields(msg.Text)
-	if len(args) == 0 {
+	if len(args) == 0 || args[0] != "/save" {
 		return
 	}
 	if msg.ReplyToMessage == nil || msg.ReplyToMessage.ID == msg.ReplyToMessage.MessageThreadID {
