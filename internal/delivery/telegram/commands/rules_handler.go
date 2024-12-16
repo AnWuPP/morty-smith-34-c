@@ -12,7 +12,11 @@ import (
 func (h *CommandHandler) RulesHandle(ctx context.Context, b *bot.Bot, msg *models.Message) {
 	rules, exists := h.chatCache.GetRules(msg.Chat.ID)
 	if !exists {
-		h.logger.Debug(ctx, "RulesHandle: rules not exists. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
+		h.logger.Debug(ctx, "RulesHandle: rules not exists",
+			"text", msg.Text,
+			"user", telegram.UserForLogger(msg.From),
+			"chat", telegram.ChatForLogger(msg.Chat),
+		)
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: msg.Chat.ID,
 			Text:   fmt.Sprintf("Ой\\-ой\\, %s\\, кажется\\, здесь нет правил\\, анархия\\!", telegram.GenerateMention(msg.From)),
@@ -23,7 +27,11 @@ func (h *CommandHandler) RulesHandle(ctx context.Context, b *bot.Bot, msg *model
 		})
 		return
 	}
-	h.logger.Debug(ctx, "RulesHandle: send rules. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
+	h.logger.Debug(ctx, "RulesHandle: send rules",
+		"text", msg.Text,
+		"user", telegram.UserForLogger(msg.From),
+		"chat", telegram.ChatForLogger(msg.Chat),
+	)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: msg.Chat.ID,
 		Text:   fmt.Sprintf("О\\, я нашел\\, %s\\, вот же правила чата\\: %s", telegram.GenerateMention(msg.From), telegram.EscapeMarkdown(rules)),

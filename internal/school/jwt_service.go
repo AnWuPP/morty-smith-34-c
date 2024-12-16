@@ -228,7 +228,7 @@ func (j *jwtService) checkUserWithRetry(ctx context.Context, login string, retri
 
 	if resp.StatusCode == http.StatusNotFound {
 		err := fmt.Errorf("user not found: %s", login)
-		j.logger.Info(ctx, err.Error())
+		j.logger.Debug(ctx, err.Error())
 		return nil, err
 	}
 
@@ -256,6 +256,6 @@ func (j *jwtService) checkUserWithRetry(ctx context.Context, login string, retri
 		return nil, fmt.Errorf("profile not active")
 	}
 
-	j.logger.Info(ctx, fmt.Sprintf("User found: %s", userResponse.Login))
+	j.logger.Debug(ctx, fmt.Sprintf("CheckUser: User found: %s", userResponse.Login))
 	return &userResponse, nil
 }

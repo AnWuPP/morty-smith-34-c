@@ -78,7 +78,7 @@ func main() {
 	}
 
 	// Создаём обработчики
-	userHandler := telegram.NewUserHandler(chatUseCase, userUseCase, jwtService)
+	userHandler := telegram.NewUserHandler(log, chatUseCase, userUseCase, jwtService)
 	commandHandler := commands.NewCommandHandler(log, chatUseCase, userUseCase, chatCache, userHandler)
 
 	botOptions := []bot.Option{

@@ -25,3 +25,11 @@ func GenerateMention(user *models.User) string {
 	}
 	return fmt.Sprintf("[User](tg://user?id=%d)", user.ID)
 }
+
+func UserForLogger(user *models.User) string {
+	return fmt.Sprintf("ID: [%d], Username: [%s], FirstName: [%s], LastName: [%s]", user.ID, user.Username, user.FirstName, user.LastName)
+}
+
+func ChatForLogger(chat models.Chat) string {
+	return fmt.Sprintf("ID: [%d], Title: [%s]", chat.ID, chat.Title)
+}

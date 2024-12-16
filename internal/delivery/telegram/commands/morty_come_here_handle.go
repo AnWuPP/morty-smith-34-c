@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"morty-smith-34-c/internal/app/entity"
+	"morty-smith-34-c/internal/delivery/telegram"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -10,7 +11,7 @@ import (
 
 func (h *CommandHandler) handleMortyComeHere(ctx context.Context, b *bot.Bot, msg *models.Message, args []string) {
 	if len(args) < 2 {
-		h.logger.Debug(ctx, "handlerMortyComeHere: missing campus. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
+		h.logger.Debug(ctx, "handlerMortyComeHere: missing campus", "text", msg.Text, "user", telegram.UserForLogger(msg.From), "chat", telegram.ChatForLogger(msg.Chat))
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:          msg.Chat.ID,
 			MessageThreadID: msg.MessageThreadID,
@@ -24,7 +25,12 @@ func (h *CommandHandler) handleMortyComeHere(ctx context.Context, b *bot.Bot, ms
 		CampusName: campusName,
 	})
 	if err != nil {
-		h.logger.Error(ctx, "handlerMortyComeHere: create campus erre. text: %s | user: %v | chat: %v | err: %v", msg.Text, msg.From, msg.Chat, err)
+		h.logger.Error(ctx, "handlerMortyComeHere: create campus error",
+			"text", msg.Text,
+			"user", telegram.UserForLogger(msg.From),
+			"chat", telegram.ChatForLogger(msg.Chat),
+			"err", err,
+		)
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:          msg.Chat.ID,
 			MessageThreadID: msg.MessageThreadID,
@@ -32,7 +38,7 @@ func (h *CommandHandler) handleMortyComeHere(ctx context.Context, b *bot.Bot, ms
 		})
 		return
 	}
-	h.logger.Debug(ctx, "handlerMortyComeHere: campus created. text: %s | user: %v | chat: %v", msg.Text, msg.From, msg.Chat)
+	h.logger.Debug(ctx, "handlerMortyComeHere: campus created", "text", msg.Text, "user", telegram.UserForLogger(msg.From), "chat", telegram.ChatForLogger(msg.Chat))
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:          msg.Chat.ID,
 		MessageThreadID: msg.MessageThreadID,
