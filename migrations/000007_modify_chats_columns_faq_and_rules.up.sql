@@ -1,0 +1,5 @@
+ALTER TABLE chats
+MODIFY COLUMN rules_link TEXT;
+
+ALTER TABLE chats
+MODIFY COLUMN faq_link TEXT;

@@ -34,7 +34,7 @@ func (h *CommandHandler) RulesHandle(ctx context.Context, b *bot.Bot, msg *model
 	)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: msg.Chat.ID,
-		Text:   fmt.Sprintf("О\\, я нашел\\, %s\\, вот же правила чата\\: %s", telegram.GenerateMention(msg.From), telegram.EscapeMarkdown(rules)),
+		Text:   fmt.Sprintf("О\\, я нашел\\, %s\\, вот же правила чата\\:\n%s", telegram.GenerateMention(msg.From), telegram.EscapeMarkdown(rules)),
 		ReplyParameters: &models.ReplyParameters{
 			MessageID: msg.ID,
 		},

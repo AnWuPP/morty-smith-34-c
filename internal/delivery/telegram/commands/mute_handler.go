@@ -18,6 +18,18 @@ func (h *CommandHandler) handleMute(ctx context.Context, b *bot.Bot, msg *models
 		return
 	}
 
+	if msg.ReplyToMessage.From.ID == msg.From.ID {
+		h.logger.Debug(ctx, "handleMute: muted yourself try", "text", msg.Text, "user", telegram.UserForLogger(msg.From), "chat", telegram.ChatForLogger(msg.Chat))
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: msg.Chat.ID,
+			Text:   "Погоди, что? Ты хотел себя замутить? Ха-ха, Рик, посмотри на это...",
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: msg.ID,
+			},
+		})
+		return
+	}
+
 	duration, err := parseDuration(strings.Join(args, " "))
 	if err != nil {
 		h.logger.Debug(ctx, "handleMute: missing format time", "text", msg.Text, "user", telegram.UserForLogger(msg.From), "chat", telegram.ChatForLogger(msg.Chat))

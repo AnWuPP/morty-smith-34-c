@@ -21,6 +21,11 @@ func (h *CommandHandler) handleUnmute(ctx context.Context, b *bot.Bot, msg *mode
 		return
 	}
 
+	if msg.ReplyToMessage.From.ID == msg.From.ID {
+		h.logger.Debug(ctx, "handleMute: unmuted yourself try", "text", msg.Text, "user", telegram.UserForLogger(msg.From), "chat", telegram.ChatForLogger(msg.Chat))
+		return
+	}
+
 	unmutedUserID := msg.ReplyToMessage.From.ID
 	_, err := b.RestrictChatMember(ctx, &bot.RestrictChatMemberParams{
 		ChatID: msg.Chat.ID,

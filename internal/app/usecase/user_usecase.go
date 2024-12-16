@@ -56,3 +56,7 @@ func (u *UserUseCase) SaveNickname(ctx context.Context, telegramID int64, nickna
 func (u *UserUseCase) Exists(ctx context.Context, telegramID int64) (bool, error) {
 	return u.UserRepo.Exists(ctx, telegramID)
 }
+
+func (u *UserUseCase) UpdateSchoolNick(ctx context.Context, telegramID int64, nick string) (bool, error) {
+	return u.UserRepo.UpdateSchoolNick(ctx, telegramID, nick)
+}
