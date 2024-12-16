@@ -28,7 +28,7 @@ func (h *CommandHandler) handleMortyFaq(ctx context.Context, b *bot.Bot, msg *mo
 		})
 		return
 	}
-	faq := strings.Join(args[1:], " ")
+	faq := strings.TrimPrefix("/morty_faq", msg.Text)
 	err := h.ChatUseCase.UpdateFaqLink(ctx, msg.Chat.ID, faq)
 	if err != nil {
 		h.logger.Error(ctx, "handleMortyFaq: update link error",

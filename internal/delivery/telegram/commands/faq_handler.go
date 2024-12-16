@@ -26,7 +26,7 @@ func (h *CommandHandler) FaqHandle(ctx context.Context, b *bot.Bot, msg *models.
 	h.logger.Debug(ctx, "FaqHandle: send faq", "user", telegram.UserForLogger(msg.From), "chat", telegram.ChatForLogger(msg.Chat))
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: msg.Chat.ID,
-		Text:   fmt.Sprintf("Н\\-н\\-надеюсь\\, %s\\, тебе это поможет\\:\n%s", telegram.GenerateMention(msg.From), telegram.EscapeMarkdown(faq)),
+		Text:   fmt.Sprintf("Н\\-н\\-надеюсь\\, %s\\, тебе это поможет\\: %s", telegram.GenerateMention(msg.From), telegram.EscapeMarkdown(faq)),
 		ReplyParameters: &models.ReplyParameters{
 			MessageID: msg.ID,
 		},
