@@ -153,7 +153,7 @@ func main() {
 		commandHandler.RulesHandle(ctx, b, update.Message)
 	})
 
-	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/save", bot.MatchTypeExact, func(ctx context.Context, b *bot.Bot, update *models.Update) {
+	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/save", bot.MatchTypePrefix, func(ctx context.Context, b *bot.Bot, update *models.Update) {
 		commandHandler.SaveHandle(ctx, b, update.Message)
 	})
 
