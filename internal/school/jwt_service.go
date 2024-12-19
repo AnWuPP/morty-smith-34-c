@@ -266,8 +266,8 @@ func (j *jwtService) checkUserWithRetry(ctx context.Context, login string, retri
 		return nil, fmt.Errorf("not core program")
 	}
 
-	if userResponse.Status != "ACTIVE" {
-		return nil, fmt.Errorf("profile not active")
+	if userResponse.Status == "BLOCKED" {
+		return nil, fmt.Errorf("profile blocked")
 	}
 
 	j.logger.Debug(ctx, fmt.Sprintf("CheckUser: User found: %s", userResponse.Login))
