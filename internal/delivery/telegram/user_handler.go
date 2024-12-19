@@ -117,6 +117,10 @@ func (h *UserHandler) HandleNewMembers(ctx context.Context, b *bot.Bot, msg *mod
 					UserID:    user.ID,
 					UntilDate: 0,
 				})
+				h.logger.Info(ctx, "HandleNewMembers: Ban user after timeout",
+					"user", UserForLogger(&user),
+					"chat", ChatForLogger(msg.Chat),
+				)
 				if err != nil {
 					h.logger.Debug(ctx, "HandleNewMembers: Failed to ban user",
 						"user", UserForLogger(msg.From),
@@ -187,7 +191,7 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 			})
 			return
 		}
-		if err.Error() == "not core program" || err.Error() == "profile not active" {
+		if err.Error() == "not core program" || err.Error() == "profile blocked" {
 			h.RemoveUserFromTimers(ctx, b, msg.Chat.ID, msg.From.ID)
 
 			_, err := b.BanChatMember(ctx, &bot.BanChatMemberParams{
@@ -195,6 +199,11 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 				UserID:    msg.From.ID,
 				UntilDate: 0,
 			})
+			h.logger.Info(ctx, "HandleNewMembers: Ban user after check",
+				"user", UserForLogger(msg.From),
+				"chat", ChatForLogger(msg.Chat),
+				"err", err,
+			)
 			if err != nil {
 				h.logger.Debug(ctx, "HandleNickname: Failed to ban user",
 					"user", UserForLogger(msg.From),
