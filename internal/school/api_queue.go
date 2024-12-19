@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+type ApiQueue interface {
+	Start(ctx context.Context)
+	AddRequest(ctx context.Context, method, endpoint string, headers map[string]string, body io.Reader) chan interface{}
+}
+
 // Request - структура для запросов в очередь.
 type Request struct {
 	Method   string
@@ -32,7 +37,7 @@ type APIQueue struct {
 }
 
 // NewAPIQueue создает новый экземпляр APIQueue.
-func NewAPIQueue(maxRequests int, interval time.Duration, httpClient *http.Client, logger *logger.Logger) *APIQueue {
+func NewAPIQueue(maxRequests int, interval time.Duration, httpClient *http.Client, logger *logger.Logger) ApiQueue {
 	if httpClient == nil {
 		httpClient = &http.Client{}
 	}

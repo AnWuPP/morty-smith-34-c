@@ -9,6 +9,7 @@ import (
 	"io"
 	"morty-smith-34-c/pkg/logger"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -29,7 +30,7 @@ type jwtService struct {
 	apiBaseURL   string
 	tokenCache   *TokenCache
 	logger       *logger.Logger
-	apiQueue     *APIQueue
+	apiQueue     ApiQueue
 }
 
 // TokenCache - структура для хранения токенов в памяти.
@@ -63,7 +64,7 @@ type UserResponse struct {
 }
 
 // NewJWTService создает новый экземпляр jwtService.
-func NewJWTService(username, password, authEndpoint, apiBaseURL string, logger *logger.Logger, apiQueue *APIQueue) JWTService {
+func NewJWTService(username, password, authEndpoint, apiBaseURL string, logger *logger.Logger, apiQueue ApiQueue) JWTService {
 	return &jwtService{
 		username:     username,
 		password:     password,
@@ -139,7 +140,15 @@ func (j *jwtService) RefreshTokens(ctx context.Context) error {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		err := fmt.Errorf("failed to refresh tokens: %s", string(body))
+		errMessage := string(body)
+
+		// Если RefreshToken недействителен, повторяем авторизацию через логин и пароль
+		if resp.StatusCode == http.StatusBadRequest && isInvalidGrant(errMessage) {
+			j.logger.Warn(ctx, "Refresh token is invalid, re-authenticating with username and password")
+			return j.Authenticate(ctx)
+		}
+
+		err := fmt.Errorf("failed to refresh tokens: %s", errMessage)
 		j.logger.Error(ctx, err.Error())
 		return err
 	}
@@ -159,6 +168,11 @@ func (j *jwtService) RefreshTokens(ctx context.Context) error {
 	j.tokenCache.Expiry = time.Now().Add(time.Duration(jwtResponse.ExpiresIn) * time.Second)
 	j.logger.Info(ctx, "Tokens successfully refreshed")
 	return nil
+}
+
+// isInvalidGrant проверяет, содержит ли ошибка описание `invalid_grant`.
+func isInvalidGrant(errMessage string) bool {
+	return strings.Contains(errMessage, "invalid_grant")
 }
 
 // GetAccessToken - возвращает текущий access_token или обновляет его, если он истёк.
