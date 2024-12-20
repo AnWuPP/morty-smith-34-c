@@ -5,17 +5,12 @@ import (
 	"fmt"
 	"morty-smith-34-c/internal/delivery/telegram"
 	"strings"
-	"time"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 )
 
 func (h *CommandHandler) SaveHandle(ctx context.Context, b *bot.Bot, msg *models.Message) {
-	b.DeleteMessage(ctx, &bot.DeleteMessageParams{
-		ChatID:    msg.Chat.ID,
-		MessageID: msg.ID,
-	})
 	args := strings.Fields(msg.Text)
 	if len(args) == 0 || args[0] != "/save" {
 		return
@@ -75,7 +70,7 @@ func (h *CommandHandler) SaveHandle(ctx context.Context, b *bot.Bot, msg *models
 					"for", telegram.UserForLogger(msg.ReplyToMessage.From),
 					"chat", telegram.ChatForLogger(msg.Chat),
 				)
-				sendMsg, err := b.SendMessage(ctx, &bot.SendMessageParams{
+				b.SendMessage(ctx, &bot.SendMessageParams{
 					ChatID: msg.Chat.ID,
 					Text: fmt.Sprintf(
 						"О\\-ох\\, %s\\, кажется\\, я уже знаю его\\, но не под этим именем\\, теперь я запомнил [%s](tg://user?id=%d)\\!",
@@ -88,15 +83,6 @@ func (h *CommandHandler) SaveHandle(ctx context.Context, b *bot.Bot, msg *models
 					},
 					ParseMode: models.ParseModeMarkdown,
 				})
-				if err != nil {
-					return
-				}
-				time.AfterFunc(time.Minute, func() {
-					b.DeleteMessage(ctx, &bot.DeleteMessageParams{
-						ChatID:    sendMsg.Chat.ID,
-						MessageID: sendMsg.ID,
-					})
-				})
 				return
 			}
 		}
@@ -106,22 +92,13 @@ func (h *CommandHandler) SaveHandle(ctx context.Context, b *bot.Bot, msg *models
 			"for", telegram.UserForLogger(msg.ReplyToMessage.From),
 			"chat", telegram.ChatForLogger(msg.Chat),
 		)
-		sendMsg, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: msg.Chat.ID,
 			Text:   fmt.Sprintf("О\\-ох\\, %s\\, кажется\\, я уже знаю его\\!", telegram.GenerateMention(msg.From)),
 			ReplyParameters: &models.ReplyParameters{
 				MessageID: msg.ID,
 			},
 			ParseMode: models.ParseModeMarkdown,
-		})
-		if err != nil {
-			return
-		}
-		time.AfterFunc(time.Minute, func() {
-			b.DeleteMessage(ctx, &bot.DeleteMessageParams{
-				ChatID:    sendMsg.Chat.ID,
-				MessageID: sendMsg.ID,
-			})
 		})
 		return
 	}
@@ -134,21 +111,12 @@ func (h *CommandHandler) SaveHandle(ctx context.Context, b *bot.Bot, msg *models
 			"chat", telegram.ChatForLogger(msg.Chat),
 			"err", err,
 		)
-		sendMsg, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: msg.Chat.ID,
 			Text:   "О-о-о, о нет! Кажется что-то пошло не так...!",
 			ReplyParameters: &models.ReplyParameters{
 				MessageID: msg.ID,
 			},
-		})
-		if err != nil {
-			return
-		}
-		time.AfterFunc(time.Minute, func() {
-			b.DeleteMessage(ctx, &bot.DeleteMessageParams{
-				ChatID:    sendMsg.Chat.ID,
-				MessageID: sendMsg.ID,
-			})
 		})
 		return
 	}
@@ -159,7 +127,7 @@ func (h *CommandHandler) SaveHandle(ctx context.Context, b *bot.Bot, msg *models
 		"for", telegram.UserForLogger(msg.ReplyToMessage.From),
 		"chat", telegram.ChatForLogger(msg.Chat),
 	)
-	sendMsg, err := b.SendMessage(ctx, &bot.SendMessageParams{
+	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: msg.Chat.ID,
 		Text: fmt.Sprintf("Э\\, %s\\, всё получилось\\! Я записал %s\\, теперь это наш человек\\!",
 			telegram.GenerateMention(msg.From),
@@ -169,14 +137,5 @@ func (h *CommandHandler) SaveHandle(ctx context.Context, b *bot.Bot, msg *models
 			MessageID: msg.ID,
 		},
 		ParseMode: models.ParseModeMarkdown,
-	})
-	if err != nil {
-		return
-	}
-	time.AfterFunc(time.Minute, func() {
-		b.DeleteMessage(ctx, &bot.DeleteMessageParams{
-			ChatID:    sendMsg.Chat.ID,
-			MessageID: sendMsg.ID,
-		})
 	})
 }

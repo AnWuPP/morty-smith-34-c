@@ -10,10 +10,6 @@ import (
 )
 
 func (h *CommandHandler) FaqHandle(ctx context.Context, b *bot.Bot, msg *models.Message) {
-	b.DeleteMessage(ctx, &bot.DeleteMessageParams{
-		ChatID:    msg.Chat.ID,
-		MessageID: msg.ID,
-	})
 	faq, exists := h.chatCache.GetFaq(msg.Chat.ID)
 	if !exists {
 		h.logger.Debug(ctx, "FaqHandle: faq not exists", "user", telegram.UserForLogger(msg.From), "chat", telegram.ChatForLogger(msg.Chat))
