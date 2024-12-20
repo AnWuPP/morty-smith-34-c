@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -59,7 +60,7 @@ func (h *UserHandler) HandleNewMembers(ctx context.Context, b *bot.Bot, msg *mod
 				ChatID:          msg.Chat.ID,
 				MessageThreadID: msg.MessageThreadID,
 				Text: fmt.Sprintf(
-					"Эй\\, %s\\! Ты снова здесь\\? Как круто\\! Добро пожаловать обратно\\, чувак\\! Надеюсь\\, ты готов к тому\\, что Рик опять начнёт шутить про тебя\\!",
+					"Эй\\, %s\\! С возвращением!",
 					GenerateMention(&user),
 				),
 				ParseMode: models.ParseModeMarkdown,
@@ -84,7 +85,7 @@ func (h *UserHandler) HandleNewMembers(ctx context.Context, b *bot.Bot, msg *mod
 			ChatID:          msg.Chat.ID,
 			MessageThreadID: msg.MessageThreadID,
 			Text: fmt.Sprintf(
-				"О\\-о\\-ох\\, эй\\, %s\\, ты новенький\\, да\\? Ладно, послушай\\! Тебе нужно сбросить [сюда](https://t.me/c/%s/%d) свой школьный ник\\, м\\-может быть\\, окей\\? Зачем\\? А\\-а\\-а\\-а я не знаю\\, просто правила такие\\! Ну\\, пожалуйста\\, сделай это\\, пока Рик не начал ворчать\\!",
+				"Добро пожаловать\\, %s\\, у тебя есть **5 минут**\\, чтобы написать свой **школьный ник** в топик [ID](https://t.me/c/%s/%d)\\.",
 				GenerateMention(&user), readableChatID, threadID,
 			),
 			ParseMode: models.ParseModeMarkdown,
@@ -149,6 +150,7 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 		)
 		return
 	}
+	msg.Text = strings.ToLower(msg.Text)
 	_, err := h.jwtService.CheckUser(ctx, msg.Text)
 	if err != nil {
 		if err.Error() == "user not found" {
@@ -160,7 +162,7 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 			sendMessage, _ := b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID: msg.Chat.ID,
 				Text: fmt.Sprintf(
-					"О нет\\, %s\\! Чувак\\, я тут\\.\\.\\. мм\\.\\.\\. я тут посмотрел\\, и ничего не нашёл\\! Может\\, ты неправильно написал\\? О\\-о\\-о\\, как мне теперь быть\\? Попробуй ещё раз\\, п\\-пожалуйста\\!",
+					"Эй\\, %s\\! Не могу найти твой ник в Школе 21\\. Попробуй еще раз\\, без опечаток\\!",
 					GenerateMention(msg.From),
 				),
 				ReplyParameters: &models.ReplyParameters{
@@ -175,7 +177,7 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 				Reaction: []models.ReactionType{
 					{
 						Type:              models.ReactionTypeTypeEmoji,
-						ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "👎"},
+						ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "🤔"},
 					},
 				},
 			})
@@ -217,7 +219,7 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 				Reaction: []models.ReactionType{
 					{
 						Type:              models.ReactionTypeTypeEmoji,
-						ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "😈"},
+						ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "🤬"},
 					},
 				},
 			})
@@ -255,7 +257,7 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 		Reaction: []models.ReactionType{
 			{
 				Type:              models.ReactionTypeTypeEmoji,
-				ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "👍"},
+				ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "🔥"},
 			},
 		},
 	})
@@ -268,7 +270,7 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 	sendMessage, _ := b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: msg.Chat.ID,
 		Text: fmt.Sprintf(
-			"О\\-о\\-о\\, круто\\, %s\\! Я проверил\\, и всё в порядке\\. Ты — наш человек\\! Э\\-э, ну\\, ладно\\, наверное\\.\\.\\. мм\\, читай правила\\, чтобы не попасть в беду\\, окей\\? А я пойду спрячусь где\\-нибудь\\, пока Рик не начал шутить про меня\\.\\.\\.",
+			"Круто\\, %s\\! Я проверил\\, и всё в порядке\\. Ты — наш человек\\! Соблюдай правила нашего сообщества\\!",
 			GenerateMention(msg.From),
 		),
 		ReplyParameters: &models.ReplyParameters{
