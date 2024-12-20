@@ -10,6 +10,10 @@ import (
 )
 
 func (h *CommandHandler) RulesHandle(ctx context.Context, b *bot.Bot, msg *models.Message) {
+	b.DeleteMessage(ctx, &bot.DeleteMessageParams{
+		ChatID:    msg.Chat.ID,
+		MessageID: msg.ID,
+	})
 	rules, exists := h.chatCache.GetRules(msg.Chat.ID)
 	if !exists {
 		h.logger.Debug(ctx, "RulesHandle: rules not exists",
@@ -34,7 +38,7 @@ func (h *CommandHandler) RulesHandle(ctx context.Context, b *bot.Bot, msg *model
 	)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: msg.Chat.ID,
-		Text:   fmt.Sprintf("О\\, я нашел\\, %s\\, вот же правила чата\\:\n%s", telegram.GenerateMention(msg.From), telegram.EscapeMarkdown(rules)),
+		Text:   fmt.Sprintf("%s\\, вот же правила чата\\:\n%s", telegram.GenerateMention(msg.From), telegram.EscapeMarkdown(rules)),
 		ReplyParameters: &models.ReplyParameters{
 			MessageID: msg.ID,
 		},

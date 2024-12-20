@@ -206,7 +206,6 @@ func (j *jwtService) checkUserWithRetry(ctx context.Context, login string, retri
 		j.logger.Error(ctx, fmt.Sprintf("Failed to get access token: %v", err))
 		return nil, fmt.Errorf("failed to get access token: %w", err)
 	}
-
 	// Формируем URL для API запроса
 	url := fmt.Sprintf("%s/participants/%s", j.apiBaseURL, login)
 	headers := map[string]string{
