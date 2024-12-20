@@ -12,10 +12,6 @@ import (
 
 // handleUnmute handles the /unmute command
 func (h *CommandHandler) handleUnmute(ctx context.Context, b *bot.Bot, msg *models.Message) {
-	b.DeleteMessage(ctx, &bot.DeleteMessageParams{
-		ChatID:    msg.Chat.ID,
-		MessageID: msg.ID,
-	})
 	if msg.ReplyToMessage == nil || msg.ReplyToMessage.ID == msg.ReplyToMessage.MessageThreadID {
 		h.logger.Debug(ctx, "handleUnmute: message is not reply",
 			"text", msg.Text,
@@ -56,22 +52,13 @@ func (h *CommandHandler) handleUnmute(ctx context.Context, b *bot.Bot, msg *mode
 			"chat", telegram.ChatForLogger(msg.Chat),
 			"err", err,
 		)
-		sendMsg, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: msg.Chat.ID,
 			Text:   fmt.Sprintf("О нет\\! Не могу размутить %s\\, %s\\, помоги мне\\!", telegram.GenerateMention(msg.ReplyToMessage.From), telegram.GenerateMention(msg.From)),
 			ReplyParameters: &models.ReplyParameters{
 				MessageID: msg.ID,
 			},
 			ParseMode: models.ParseModeMarkdown,
-		})
-		if err != nil {
-			return
-		}
-		time.AfterFunc(time.Minute, func() {
-			b.DeleteMessage(ctx, &bot.DeleteMessageParams{
-				ChatID:    sendMsg.Chat.ID,
-				MessageID: sendMsg.ID,
-			})
 		})
 		return
 	}
@@ -82,21 +69,12 @@ func (h *CommandHandler) handleUnmute(ctx context.Context, b *bot.Bot, msg *mode
 		"for", telegram.UserForLogger(msg.ReplyToMessage.From),
 		"chat", telegram.ChatForLogger(msg.Chat),
 	)
-	sendMsg, err := b.SendMessage(ctx, &bot.SendMessageParams{
+	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: msg.Chat.ID,
 		Text:   fmt.Sprintf("Фух\\! %s размучен\\, %s\\, ты - герой\\!", telegram.GenerateMention(msg.ReplyToMessage.From), telegram.GenerateMention(msg.From)),
 		ReplyParameters: &models.ReplyParameters{
 			MessageID: msg.ID,
 		},
 		ParseMode: models.ParseModeMarkdown,
-	})
-	if err != nil {
-		return
-	}
-	time.AfterFunc(time.Minute, func() {
-		b.DeleteMessage(ctx, &bot.DeleteMessageParams{
-			ChatID:    sendMsg.Chat.ID,
-			MessageID: sendMsg.ID,
-		})
 	})
 }
