@@ -60,7 +60,7 @@ func (h *UserHandler) HandleNewMembers(ctx context.Context, b *bot.Bot, msg *mod
 				ChatID:          msg.Chat.ID,
 				MessageThreadID: msg.MessageThreadID,
 				Text: fmt.Sprintf(
-					"Эй\\, %s\\! С возвращением!",
+					"Эй\\, %s\\! С возвращением\\, рад увидеть знакомое лицо\\!",
 					GenerateMention(&user),
 				),
 				ParseMode: models.ParseModeMarkdown,
@@ -73,7 +73,7 @@ func (h *UserHandler) HandleNewMembers(ctx context.Context, b *bot.Bot, msg *mod
 				)
 				continue
 			}
-			time.AfterFunc(time.Minute*2, func() {
+			time.AfterFunc(time.Minute, func() {
 				b.DeleteMessage(ctx, &bot.DeleteMessageParams{
 					ChatID:    msg.Chat.ID,
 					MessageID: sendMessage.ID,
@@ -177,7 +177,7 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 				Reaction: []models.ReactionType{
 					{
 						Type:              models.ReactionTypeTypeEmoji,
-						ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "🤔"},
+						ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "👎"},
 					},
 				},
 			})
@@ -257,7 +257,7 @@ func (h *UserHandler) HandleNickname(ctx context.Context, b *bot.Bot, msg *model
 		Reaction: []models.ReactionType{
 			{
 				Type:              models.ReactionTypeTypeEmoji,
-				ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "🔥"},
+				ReactionTypeEmoji: &models.ReactionTypeEmoji{Emoji: "👍"},
 			},
 		},
 	})
