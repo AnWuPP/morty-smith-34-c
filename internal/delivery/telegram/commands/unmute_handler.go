@@ -71,7 +71,7 @@ func (h *CommandHandler) handleUnmute(ctx context.Context, b *bot.Bot, msg *mode
 	)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: msg.Chat.ID,
-		Text:   fmt.Sprintf("Фух\\! %s размучен\\, %s\\, ты - герой\\!", telegram.GenerateMention(msg.ReplyToMessage.From), telegram.GenerateMention(msg.From)),
+		Text:   fmt.Sprintf("Фух\\! %s размучен\\, %s\\, ты \\- герой\\!", telegram.GenerateMention(msg.ReplyToMessage.From), telegram.GenerateMention(msg.From)),
 		ReplyParameters: &models.ReplyParameters{
 			MessageID: msg.ID,
 		},
