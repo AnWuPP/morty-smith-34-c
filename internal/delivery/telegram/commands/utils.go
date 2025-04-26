@@ -22,9 +22,15 @@ func parseDuration(input string) (time.Duration, error) {
 		var value int
 		var err error
 
-		if strings.Contains(match, "день") || strings.Contains(match, "дня") || strings.Contains(match, "дней") {
+		if strings.Contains(match, "день") {
 			value, err = extractNumber(match, "день")
 			duration += time.Duration(value) * 24 * time.Hour
+		} else if strings.Contains(match, "дня") {
+			value, err = extractNumber(match, "дня")
+			duration += time.Duration(value) * time.Hour
+		} else if strings.Contains(match, "дней") {
+			value, err = extractNumber(match, "дней")
+			duration += time.Duration(value) * time.Hour
 		} else if strings.Contains(match, "час") {
 			value, err = extractNumber(match, "час")
 			duration += time.Duration(value) * time.Hour
