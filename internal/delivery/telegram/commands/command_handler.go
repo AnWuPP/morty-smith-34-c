@@ -44,7 +44,7 @@ func (h *CommandHandler) HandleCommand(ctx context.Context, b *bot.Bot, msg *mod
 		}
 	}
 	if args[0] == "/mute" || args[0] == "/unmute" {
-		err := h.UserUseCase.CheckRole(ctx, msg.From.ID, []string{"moderator", "admin", "superadmin"})
+		err := h.UserUseCase.CheckRole(ctx, msg.From.ID, []string{"moder", "admin", "superadmin"})
 		if err != nil {
 			return
 		}

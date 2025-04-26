@@ -145,11 +145,11 @@ func main() {
 		commandHandler.HandleCommand(ctx, b, update.Message)
 	})
 
-	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/faq", bot.MatchTypeExact, func(ctx context.Context, b *bot.Bot, update *models.Update) {
+	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/faq", bot.MatchTypePrefix, func(ctx context.Context, b *bot.Bot, update *models.Update) {
 		commandHandler.FaqHandle(ctx, b, update.Message)
 	})
 
-	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/rules", bot.MatchTypeExact, func(ctx context.Context, b *bot.Bot, update *models.Update) {
+	tgBot.RegisterHandler(bot.HandlerTypeMessageText, "/rules", bot.MatchTypePrefix, func(ctx context.Context, b *bot.Bot, update *models.Update) {
 		commandHandler.RulesHandle(ctx, b, update.Message)
 	})
 
